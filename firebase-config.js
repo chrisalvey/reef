@@ -4,12 +4,12 @@ import { getAuth } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-auth
 import { getStorage } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-storage.js';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyChmsflW9Z98WkpuCENrGfzI3Benyr_ULw",
-  authDomain: "bush-league-3e05d.firebaseapp.com",
-  projectId: "bush-league-3e05d",
-  storageBucket: "bush-league-3e05d.firebasestorage.app",
-  messagingSenderId: "1007982282595",
-  appId: "1:1007982282595:web:38b285a25d0b93b788b556"
+  apiKey: "AIzaSyArZQuRp_v2IG9leeW49v3gYeaDnhXMxDc",
+  authDomain: "reef-tracker-df787.firebaseapp.com",
+  projectId: "reef-tracker-df787",
+  storageBucket: "reef-tracker-df787.firebasestorage.app",
+  messagingSenderId: "1046001834883",
+  appId: "1:1046001834883:web:817611c638e8af1c3e74b6"
 };
 
 const app = initializeApp(firebaseConfig);
