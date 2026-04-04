@@ -341,18 +341,15 @@
   // Nav active state
   document.querySelectorAll('.nav-link[data-page="calculators"]').forEach(el => el.classList.add('active'));
 
-  // Pre-fill volumes from tank profile stored in localStorage by dashboard
+  // Pre-fill volumes from tank profile — always use TOTAL volume for calculations
+  // (water circulates through all chambers including rear AIO filtration)
   (function prefillVolumes() {
-    const display = parseFloat(localStorage.getItem('reef_vol_display'));
-    const total   = parseFloat(localStorage.getItem('reef_vol_total'));
-    const vol     = display || total;
-    if (!vol) return;
+    const total = parseFloat(localStorage.getItem('reef_vol_total'));
+    if (!total) return;
     ['alk-volume','ca-volume','mg-volume','tp-volume','wc-volume'].forEach(id => {
       const el = document.getElementById(id);
-      if (el && !el.value) el.value = vol;
+      if (el && !el.value) el.value = total;
     });
-    const volH = document.getElementById('vol-height');
-    // Leave volume calculator fields alone — user should enter dimensions
   })();
 
   // Tab switching
