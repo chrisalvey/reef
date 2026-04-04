@@ -42,18 +42,33 @@ function applyTankProfile(t) {
   document.getElementById('infoDisplay').textContent    = t.volDisplay ? `${t.volDisplay} gal`  : '—';
   document.getElementById('infoChamber').textContent    = t.volChamber ? `${t.volChamber} gal`  : '—';
   document.getElementById('infoDimensions').textContent = (t.width && t.height && t.depth)
-    ? `${t.width}" × ${t.height}" × ${t.depth}"`  : '—';
+    ? `${t.width}" × ${t.height}" × ${t.depth}"` : '—';
   document.getElementById('infoGlass').textContent      = t.glass || '—';
 
-  // Store display volume globally so calculators page can read it
-  if (t.volDisplay) localStorage.setItem('reef_vol_display', t.volDisplay);
+  // Store total volume for calculators page
   if (t.volTotal)   localStorage.setItem('reef_vol_total',   t.volTotal);
+  if (t.volDisplay) localStorage.setItem('reef_vol_display', t.volDisplay);
+
+  // Render chamber layout card
+  const chambers = [t.ch1, t.ch2, t.ch3].filter(Boolean);
+  const chamberCard = document.getElementById('chamberCard');
+  if (chambers.length) {
+    chamberCard.classList.remove('hidden');
+    document.getElementById('chamberDisplay').innerHTML = chambers.map((ch, i) => `
+      <div style="background:var(--ocean-mid);border:1px solid var(--ocean-border);border-radius:var(--radius-md);padding:1rem;">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--teal);margin-bottom:.5rem;">
+          Ch${i + 1} · ${ch.name || ''}  ${ch.width ? `<span style="color:var(--text-muted)">${ch.width}"</span>` : ''}
+        </div>
+        ${ch.contents ? `<div class="text-sm" style="margin-bottom:.4rem;">${ch.contents}</div>` : ''}
+        ${ch.flow     ? `<div class="text-xs text-muted">${ch.flow}</div>` : ''}
+      </div>`).join('');
+  } else {
+    chamberCard.classList.add('hidden');
+  }
 }
 
 // ── Tank Profile Modal ────────────────────────────────────
-document.getElementById('tankSettingsBtn').addEventListener('click', async () => {
-  const snap = await getDoc(doc(db, 'reef_settings', 'tank_profile'));
-  const t = snap.exists() ? snap.data() : {};
+function populateTankModal(t) {
   document.getElementById('tpLabel').value      = t.label      || '';
   document.getElementById('tpModel').value      = t.model      || '';
   document.getElementById('tpStyle').value      = t.style      || '';
@@ -64,7 +79,28 @@ document.getElementById('tankSettingsBtn').addEventListener('click', async () =>
   document.getElementById('tpWidth').value      = t.width      || '';
   document.getElementById('tpHeight').value     = t.height     || '';
   document.getElementById('tpDepth').value      = t.depth      || '';
+  // Chambers
+  [1, 2, 3].forEach(n => {
+    const ch = t[`ch${n}`] || {};
+    document.getElementById(`ch${n}Name`).value     = ch.name     || '';
+    document.getElementById(`ch${n}Width`).value    = ch.width    || '';
+    document.getElementById(`ch${n}Contents`).value = ch.contents || '';
+    document.getElementById(`ch${n}Flow`).value     = ch.flow     || '';
+  });
+}
+
+document.getElementById('tankSettingsBtn').addEventListener('click', async () => {
+  const snap = await getDoc(doc(db, 'reef_settings', 'tank_profile'));
+  populateTankModal(snap.exists() ? snap.data() : {});
   showModal('tankModal');
+});
+
+document.getElementById('editChambersBtn').addEventListener('click', async () => {
+  const snap = await getDoc(doc(db, 'reef_settings', 'tank_profile'));
+  populateTankModal(snap.exists() ? snap.data() : {});
+  showModal('tankModal');
+  // Scroll to chamber section
+  setTimeout(() => document.getElementById('chambersForm').scrollIntoView({ behavior: 'smooth' }), 100);
 });
 
 document.getElementById('saveTankProfile').addEventListener('click', async () => {
@@ -79,6 +115,9 @@ document.getElementById('saveTankProfile').addEventListener('click', async () =>
     width:      parseFloat(document.getElementById('tpWidth').value)      || null,
     height:     parseFloat(document.getElementById('tpHeight').value)     || null,
     depth:      parseFloat(document.getElementById('tpDepth').value)      || null,
+    ch1: { name: document.getElementById('ch1Name').value.trim(), width: document.getElementById('ch1Width').value, contents: document.getElementById('ch1Contents').value.trim(), flow: document.getElementById('ch1Flow').value.trim() },
+    ch2: { name: document.getElementById('ch2Name').value.trim(), width: document.getElementById('ch2Width').value, contents: document.getElementById('ch2Contents').value.trim(), flow: document.getElementById('ch2Flow').value.trim() },
+    ch3: { name: document.getElementById('ch3Name').value.trim(), width: document.getElementById('ch3Width').value, contents: document.getElementById('ch3Contents').value.trim(), flow: document.getElementById('ch3Flow').value.trim() },
   };
   await setDoc(doc(db, 'reef_settings', 'tank_profile'), data);
   applyTankProfile(data);
