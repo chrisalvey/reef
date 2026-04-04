@@ -29,13 +29,26 @@
 <main class="main">
   <div class="page-header-row">
     <div class="page-header" style="margin-bottom:0">
-      <h1>Dashboard</h1>
-      <p>Live overview of your reef tank</p>
+      <h1 id="tankName">Dashboard</h1>
+      <p id="tankSubtitle">Live overview of your reef tank</p>
     </div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-sm" id="tankSettingsBtn">⚙ Tank Profile</button>
       <button class="btn btn-secondary btn-sm" id="refreshBtn">↻ Refresh</button>
       <a href="parameters.html" class="btn btn-primary btn-sm">+ Log Parameter</a>
     </div>
+  </div>
+
+  <!-- Tank info bar -->
+  <div id="tankInfoBar" class="hidden mb-lg" style="display:flex;gap:1.5rem;flex-wrap:wrap;background:var(--ocean-card);border:1px solid var(--ocean-border);border-radius:var(--radius-lg);padding:.75rem 1.25rem;align-items:center;">
+    <div><span class="text-xs text-muted">MODEL</span><div class="text-sm" id="infoModel">—</div></div>
+    <div style="width:1px;background:var(--ocean-border);align-self:stretch;"></div>
+    <div><span class="text-xs text-muted">TOTAL VOLUME</span><div class="text-sm" id="infoTotal">—</div></div>
+    <div><span class="text-xs text-muted">DISPLAY VOLUME</span><div class="text-sm" id="infoDisplay">—</div></div>
+    <div><span class="text-xs text-muted">CHAMBER VOLUME</span><div class="text-sm" id="infoChamber">—</div></div>
+    <div style="width:1px;background:var(--ocean-border);align-self:stretch;"></div>
+    <div><span class="text-xs text-muted">DISPLAY SIZE</span><div class="text-sm" id="infoDimensions">—</div></div>
+    <div><span class="text-xs text-muted">GLASS</span><div class="text-sm" id="infoGlass">—</div></div>
   </div>
 
   <!-- Alerts -->
@@ -104,6 +117,70 @@
     </div>
   </div>
 </main>
+
+<!-- Tank Profile Modal -->
+<div class="modal-overlay hidden" id="tankModal">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <h3>Tank Profile</h3>
+      <button class="btn btn-ghost btn-sm" id="closeTankModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tank Name / Label</label>
+          <input type="text" class="form-control" id="tpLabel" placeholder="e.g. My Reef">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Model</label>
+          <input type="text" class="form-control" id="tpModel" placeholder="e.g. Landen 60P AIO">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Style</label>
+          <input type="text" class="form-control" id="tpStyle" placeholder="e.g. All-in-One rear filtration">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Glass Type</label>
+          <input type="text" class="form-control" id="tpGlass" placeholder="e.g. Low-iron rimless">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Total Volume (gal)</label>
+          <input type="number" class="form-control" id="tpVolTotal" step=".01" placeholder="26.23">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Display Volume (gal)</label>
+          <input type="number" class="form-control" id="tpVolDisplay" step=".01" placeholder="20.23">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Chamber Volume (gal)</label>
+          <input type="number" class="form-control" id="tpVolChamber" step=".01" placeholder="6.00">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Display Width (in)</label>
+          <input type="number" class="form-control" id="tpWidth" step=".01" placeholder="23.62">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Display Height (in)</label>
+          <input type="number" class="form-control" id="tpHeight" step=".01" placeholder="17.71">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Display Depth (in)</label>
+          <input type="number" class="form-control" id="tpDepth" step=".01" placeholder="11.41">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="cancelTankModal">Cancel</button>
+      <button class="btn btn-primary" id="saveTankProfile">Save Profile</button>
+    </div>
+  </div>
+</div>
 
 <script type="module" src="js/dashboard.js"></script>
 </body>
