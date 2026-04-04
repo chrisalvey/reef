@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seed Data | Reef Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🪸 <span>Reef Tracker</span></a>
+  </div>
+</nav>
+
+<main class="main" style="max-width:700px;">
+  <div class="page-header">
+    <h1>Seed Initial Data</h1>
+    <p>Populates your Firestore database with equipment, settings, and tank profile. Run once — safe to re-run (overwrites existing data).</p>
+  </div>
+
+  <div id="preview" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem;"></div>
+
+  <div style="display:flex;gap:1rem;align-items:center;">
+    <button class="btn btn-primary btn-lg" id="seedBtn">🌱 Seed All Data</button>
+    <a href="index.html" class="btn btn-secondary">← Back to Dashboard</a>
+  </div>
+
+  <div id="log" style="margin-top:1.5rem;display:flex;flex-direction:column;gap:.4rem;"></div>
+</main>
+
+<script type="module">
+import { db } from './firebase-config.js';
+import {
+  doc, setDoc, addDoc, collection, getDocs, deleteDoc, query
+} from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
+
+// ── Data ──────────────────────────────────────────────────
+
+const TANK_PROFILE = {
+  label:      'My Reef',
+  model:      'Landen 60P AIO (RF-60P)',
+  style:      'All-in-One rear filtration',
+  glass:      'Low-iron rimless',
+  volTotal:   26.23,
+  volDisplay: 20.23,
+  volChamber: 6.00,
+  width:      23.62,
+  height:     17.71,
+  depth:      11.41,
+  ch1: { name: 'Intake',     width: '7.48', contents: 'Hygger 802 Titanium heater, Inkbird ITC-306T probe, coarse foam filter material', flow: 'Water enters via overflow top and bottom. Exits to Chamber 2 via cutout rear right.' },
+  ch2: { name: 'Filtration', width: '5.47', contents: 'Fine filter floss, activated carbon, Seachem Matrix bio media (top to bottom, DIY caddy)', flow: 'Enters from Ch1 cutout, rises baffle, waterfalls into chamber. Exits Ch3 via bottom cutout.' },
+  ch3: { name: 'Return',     width: '8.58', contents: 'Landen BIOSMO 700 return pump, Duetto2 primary ATO optical sensor, Duetto2 backup ATO optical sensor', flow: 'Enters from Ch2 bottom cutout. Pump returns water to display via top-right nozzle.' },
+};
+
+const LIGHTING_SETTINGS = {
+  brand: 'Hygger',
+  model: 'HG171 Eyeball Reef Light',
+  quantity: 2,
+  powerPerUnitW: 36,
+  powerTotalW: 72,
+  input: 'DC12V',
+  ledCountPerUnit: 30,
+  headDiameterIn: 3.58,
+  headDiameterCm: 9.1,
+  gooseneckHeightIn: 13.4,
+  coveragePerUnit: '24" x 24"',
+  cordLengthFt: 7.2,
+  mount: 'Oblate clamp base, glass thickness 0.2–1.0"',
+  fanNoiseMaxDb: 35,
+  intensityLevels: [10, 32, 55, 77, 100],
+  timerOptions: ['3H', '9H', '12H'],
+  modes: ['Blue Only', 'Blue + White', 'Full Spectrum'],
+  currentIntensityPct: 77,
+  scheduleOn: '14:00',
+  scheduleOff: '23:00',
+  scheduleHours: 9,
+  ledSpectrum: {
+    royalBlue: { nm: 453, count: 12 },
+    blue:      { nm: 465, count: 10 },
+    white:     { k: 6700, count: 3 },
+    violet:    { nm: 415, count: 2 },
+    uv:        { nm: 395, count: 2 },
+    red:       { nm: 660, count: 1 },
+  },
+  parMapSingleUnit: {
+    depth7in:  { center: 421, edge: 371 },
+    depth12in: { center: 360, edge: 310 },
+    depth18in: { center: 137, edge: 120 },
+  },
+  parTwoUnitsMidtank9in: {
+    pct10:  '25–35',
+    pct32:  '80–100',
+    pct55:  '140–175',
+    pct77:  '195–250',
+    pct100: '250–320',
+  },
+  parTwoUnitsSandbed17in: {
+    pct10:  '10–15',
+    pct32:  '30–50',
+    pct55:  '55–90',
+    pct77:  '75–125',
+    pct100: '100–160',
+  },
+};
+
+const RODI_SETTINGS = {
+  brand:       'RO Buddie',
+  model:       '50 GPD 4-Stage RO/DI',
+  gpd:         50,
+  stages:      4,
+  preFilter:   'Chloramine pre-filter (carbon block or catalytic carbon)',
+  stage1:      'Sediment filter (polypropylene)',
+  stage2:      'Carbon block',
+  stage3:      'RO membrane (thin-film composite)',
+  stage4:      'Mixed-bed DI resin',
+  targetTdsOut: 0,
+  usageEstGalPerMonth: '30–35',
+};
+
+const SUBSTRATE_SETTINGS = {
+  substrateBrand:   'CaribSea',
+  substrateModel:   'Ocean Direct Live Sand',
+  substrateWeightLbs: '20–25',
+  substrateTargetDepthIn: '1.0–1.5',
+  rockBrand:        'MarcoRocks',
+  rockProduct:      'Perfect Mix Coralline Combo Box',
+  rockWeightLbs:    20,
+  rockMortar:       'E-Marco-400 Coralline Mortar',
+  rockLayout:       'Two-island aquascape, pushed toward back glass',
+  rockLeftIslandHeightIn:  '~10.5 (peak)',
+  rockRightIslandHeightIn: '~8',
+  rockNotes: 'Glued and mortared. Cantilever slab on left island; showcase island on right. Swim channel between islands. Lighting angle favors front-facing coral placement.',
+};
+
+const SALT_SETTINGS = {
+  brand:              'Instant Ocean',
+  product:            'Sea Salt (plain, purple packaging — NOT Reef Crystals)',
+  waterChangeVolGal:  5,
+  waterChangeFrequency: 'biweekly',
+  waterChangeNotes:   'Every 2 weeks',
+};
+
+const ATO_SETTINGS = {
+  brand:          'Duetto2',
+  model:          'Dual-Sensor Complete ATO System',
+  sensorType:     'Optical',
+  sensorCount:    2,
+  sensorLocation: 'AIO Chamber 3',
+  reservoirType:  'Stainless steel Cornelius keg',
+  reservoirVolGal: 5,
+  reservoirFill:  'RODI water only',
+  evaporationEstGalPerDay: 0.75,
+  refillIntervalDays: '5–7',
+};
+
+const SAFETY_SETTINGS = {
+  gfciOutlet:     'Installed at tank location',
+  groundingProbe: 'Titanium (planned purchase)',
+  meshLid:        'DIY screen top (owned)',
+};
+
+const STAND_SETTINGS = {
+  model: 'Landen 60P-specific stand',
+  notes: 'In use ~3 years, no issues',
+};
+
+// Equipment documents for reef_equipment collection
+const EQUIPMENT = [
+  {
+    name: 'Landen BIOSMO 700',
+    type: 'pump',
+    brand: 'Landen',
+    dateAdded: '2022-01-01',
+    notes: 'Return pump. 185 GPH / 700 LPH max, 9W. Ceramic shaft, carbon fiber sleeve, magnetic drive, saltwater safe. Location: AIO Chamber 3. Included with tank. ~3 years runtime.',
+    serviceInterval: '',
+    lastService: '',
+    warranty: '',
+  },
+  {
+    name: 'Great White GW-W 1500',
+    type: 'pump',
+    brand: 'Dalua',
+    dateAdded: '',
+    notes: 'Wavemaker. App-controlled. External motor (no motor or wires inside tank). Magnetic mount. Qty: 1.',
+    serviceInterval: '',
+    lastService: '',
+    warranty: '',
+  },
+  {
+    name: 'HG171 Eyeball Reef Light #1',
+    type: 'light',
+    brand: 'Hygger',
+    dateAdded: '',
+    notes: '36W, DC12V, 30 LEDs. Schedule: 2:00 PM–11:00 PM (9 hrs). Current intensity: 77%. Modes: Blue Only / Blue+White / Full Spectrum. Oblate clamp mount.',
+    serviceInterval: '',
+    lastService: '',
+    warranty: '',
+  },
+  {
+    name: 'HG171 Eyeball Reef Light #2',
+    type: 'light',
+    brand: 'Hygger',
+    dateAdded: '',
+    notes: '36W, DC12V, 30 LEDs. Schedule: 2:00 PM–11:00 PM (9 hrs). Current intensity: 77%. Modes: Blue Only / Blue+White / Full Spectrum. Oblate clamp mount.',
+    serviceInterval: '',
+    lastService: '',
+    warranty: '',
+  },
+  {
+    name: '802 Titanium Heater',
+    type: 'heater',
+    brand: 'Hygger',
+    dateAdded: '',
+    notes: '100W titanium element (corrosion-proof). Location: AIO Chamber 1. Controlled by Inkbird ITC-306T.',
+    serviceInterval: '',
+    lastService: '',
+    warranty: '',
+  },
+  {
+    name: 'ITC-306T Heater Controller',
+    type: 'controller',
+    brand: 'Inkbird',
+    dateAdded: '',
+    notes: 'Temperature controller for Hygger 802 heater. Target: 77°F. Probe in AIO Chamber 1.',
+    serviceInterval: '',
+    lastService: '',
+    warranty: '',
+  },
+  {
+    name: 'Dual-Sensor ATO System',
+    type: 'controller',
+    brand: 'Duetto2',
+    dateAdded: '',
+    notes: 'Optical dual-sensor ATO (primary + backup). Sensors in AIO Chamber 3. 5-gal Cornelius keg reservoir (RODI only). ~0.75 gal/day evaporation, refill every 5–7 days.',
+    serviceInterval: '',
+    lastService: '',
+    warranty: '',
+  },
+  {
+    name: 'RO Buddie 50 GPD RO/DI',
+    type: 'filter',
+    brand: 'RO Buddie',
+    dateAdded: '',
+    notes: '4-stage: Chloramine pre-filter → Sediment → Carbon block → RO membrane → Mixed DI resin. Target TDS out: 0. Est. 30–35 gal/month usage.',
+    serviceInterval: '180',
+    lastService: '',
+    warranty: '',
+  },
+  {
+    name: 'HS300 Smart Power Strip',
+    type: 'controller',
+    brand: 'Kasa',
+    dateAdded: '',
+    notes: 'App-controlled smart strip. Qty: 1–2. Controls tank equipment individually.',
+    serviceInterval: '',
+    lastService: '',
+    warranty: '',
+  },
+  {
+    name: 'Landen 60P Stand',
+    type: 'other',
+    brand: 'Landen',
+    dateAdded: '2022-01-01',
+    notes: 'Tank-specific stand. In use ~3 years, no issues.',
+    serviceInterval: '',
+    lastService: '',
+    warranty: '',
+  },
+];
+
+// ── Seed functions ────────────────────────────────────────
+
+function log(msg, type = 'info') {
+  const el = document.createElement('div');
+  const color = type === 'ok' ? 'var(--green)' : type === 'error' ? 'var(--coral)' : 'var(--text-secondary)';
+  el.style.cssText = `font-size:.85rem;color:${color};`;
+  el.textContent = msg;
+  document.getElementById('log').appendChild(el);
+}
+
+async function clearCollection(name) {
+  const snap = await getDocs(query(collection(db, name)));
+  await Promise.all(snap.docs.map(d => deleteDoc(doc(db, name, d.id))));
+  log(`  Cleared ${snap.size} existing docs from ${name}`);
+}
+
+async function seedAll() {
+  const btn = document.getElementById('seedBtn');
+  btn.disabled = true;
+  btn.textContent = 'Seeding…';
+  document.getElementById('log').innerHTML = '';
+
+  try {
+    // 1. Tank profile
+    log('→ Saving tank profile…');
+    await setDoc(doc(db, 'reef_settings', 'tank_profile'), TANK_PROFILE);
+    log('  ✓ tank_profile', 'ok');
+
+    // 2. Lighting settings
+    log('→ Saving lighting settings…');
+    await setDoc(doc(db, 'reef_settings', 'lighting'), LIGHTING_SETTINGS);
+    log('  ✓ lighting', 'ok');
+
+    // 3. RODI settings
+    log('→ Saving RODI settings…');
+    await setDoc(doc(db, 'reef_settings', 'rodi'), RODI_SETTINGS);
+    log('  ✓ rodi', 'ok');
+
+    // 4. Substrate & rock
+    log('→ Saving substrate & rock…');
+    await setDoc(doc(db, 'reef_settings', 'substrate'), SUBSTRATE_SETTINGS);
+    log('  ✓ substrate', 'ok');
+
+    // 5. Salt & water change
+    log('→ Saving salt & water change settings…');
+    await setDoc(doc(db, 'reef_settings', 'salt'), SALT_SETTINGS);
+    log('  ✓ salt', 'ok');
+
+    // 6. ATO settings
+    log('→ Saving ATO settings…');
+    await setDoc(doc(db, 'reef_settings', 'ato'), ATO_SETTINGS);
+    log('  ✓ ato', 'ok');
+
+    // 7. Safety
+    log('→ Saving safety settings…');
+    await setDoc(doc(db, 'reef_settings', 'safety'), SAFETY_SETTINGS);
+    log('  ✓ safety', 'ok');
+
+    // 8. Stand
+    log('→ Saving stand info…');
+    await setDoc(doc(db, 'reef_settings', 'stand'), STAND_SETTINGS);
+    log('  ✓ stand', 'ok');
+
+    // 9. Equipment — clear old and re-seed
+    log('→ Seeding equipment…');
+    await clearCollection('reef_equipment');
+    for (const equip of EQUIPMENT) {
+      await addDoc(collection(db, 'reef_equipment'), equip);
+      log(`  ✓ ${equip.name}`, 'ok');
+    }
+
+    log('');
+    log('✅ All data seeded successfully! Redirecting to dashboard…', 'ok');
+    setTimeout(() => location.href = 'index.html', 2000);
+
+  } catch (err) {
+    log('❌ Error: ' + err.message, 'error');
+    btn.disabled = false;
+    btn.textContent = '🌱 Retry Seed';
+  }
+}
+
+// Preview what will be seeded
+const preview = document.getElementById('preview');
+[
+  `Tank profile + 3 AIO chambers → reef_settings/tank_profile`,
+  `Lighting specs + PAR map + LED spectrum → reef_settings/lighting`,
+  `RODI system → reef_settings/rodi`,
+  `Substrate & rock → reef_settings/substrate`,
+  `Salt & water change settings → reef_settings/salt`,
+  `ATO system → reef_settings/ato`,
+  `Safety info → reef_settings/safety`,
+  `Stand info → reef_settings/stand`,
+  `${EQUIPMENT.length} equipment items → reef_equipment (replaces existing)`,
+].forEach(line => {
+  const el = document.createElement('div');
+  el.className = 'alert alert-info text-sm';
+  el.textContent = '📦 ' + line;
+  preview.appendChild(el);
+});
+
+document.getElementById('seedBtn').addEventListener('click', seedAll);
+</script>
+</body>
+</html>
