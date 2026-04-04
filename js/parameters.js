@@ -1,7 +1,7 @@
 import { db } from '../firebase-config.js';
 import {
   collection, query, orderBy, limit, getDocs, addDoc, deleteDoc,
-  doc, where, Timestamp
+  doc, Timestamp
 } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
 import {
   setActiveNav, enabledParams, loadParamSettings, saveParamSettings,
@@ -56,12 +56,14 @@ async function loadParamData() {
 
   const q = query(
     collection(db, 'reef_parameters'),
-    where('paramKey', '==', activeKey),
     orderBy('timestamp', 'desc'),
-    limit(count)
+    limit(500)
   );
   const snap = await getDocs(q);
-  allReadings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  allReadings = snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .filter(r => r.paramKey === activeKey)
+    .slice(0, count);
 
   if (allReadings.length) {
     const latest = allReadings[0];

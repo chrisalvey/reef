@@ -1,6 +1,6 @@
 import { db } from '../firebase-config.js';
 import {
-  collection, query, orderBy, limit, getDocs, where, Timestamp
+  collection, query, orderBy, limit, getDocs, where
 } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
 import {
   setActiveNav, enabledParams, getParamStatus, statusBadgeClass, statusLabel,
@@ -30,17 +30,16 @@ async function loadParameters() {
   }
 
   const latestByParam = {};
-  const promises = params.map(async p => {
-    const q = query(
-      collection(db, 'reef_parameters'),
-      where('paramKey', '==', p.key),
-      orderBy('timestamp', 'desc'),
-      limit(1)
-    );
-    const snap = await getDocs(q);
-    if (!snap.empty) latestByParam[p.key] = snap.docs[0].data();
+  const q = query(
+    collection(db, 'reef_parameters'),
+    orderBy('timestamp', 'desc'),
+    limit(500)
+  );
+  const snap = await getDocs(q);
+  snap.docs.forEach(d => {
+    const data = d.data();
+    if (!latestByParam[data.paramKey]) latestByParam[data.paramKey] = data;
   });
-  await Promise.all(promises);
 
   const alerts = [];
   let newestTs = null;
