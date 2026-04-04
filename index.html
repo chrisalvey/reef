@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Reef Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪸</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🪸 <span>Reef Tracker</span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html"       class="nav-link" data-page="dashboard">Dashboard</a>
+      <a href="parameters.html"  class="nav-link" data-page="parameters">Parameters</a>
+      <a href="journal.html"     class="nav-link" data-page="journal">Journal</a>
+      <a href="livestock.html"   class="nav-link" data-page="livestock">Livestock</a>
+      <a href="schedule.html"    class="nav-link" data-page="schedule">Schedule</a>
+      <a href="equipment.html"   class="nav-link" data-page="equipment">Equipment</a>
+      <a href="dosing.html"      class="nav-link" data-page="dosing">Dosing</a>
+      <a href="calculators.html" class="nav-link" data-page="calculators">Calculators</a>
+    </div>
+    <button class="nav-menu-btn" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-header-row">
+    <div class="page-header" style="margin-bottom:0">
+      <h1>Dashboard</h1>
+      <p>Live overview of your reef tank</p>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-sm" id="refreshBtn">↻ Refresh</button>
+      <a href="parameters.html" class="btn btn-primary btn-sm">+ Log Parameter</a>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div id="alertsSection" class="hidden mb-lg">
+    <div id="alertsList" style="display:flex;flex-direction:column;gap:.5rem;"></div>
+  </div>
+
+  <!-- Parameter Status Grid -->
+  <section class="mb-lg">
+    <div class="flex items-center justify-between mb-md">
+      <h2 style="font-size:1rem;color:var(--text-secondary)">WATER PARAMETERS</h2>
+      <span class="text-xs text-muted" id="paramLastUpdated"></span>
+    </div>
+    <div class="grid-4" id="paramGrid">
+      <div class="loading"><div class="spinner"></div> Loading…</div>
+    </div>
+  </section>
+
+  <div class="grid-2" style="gap:1.5rem">
+    <!-- Upcoming Tasks -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Upcoming Tasks</div>
+          <div class="card-subtitle">Next 7 days</div>
+        </div>
+        <a href="schedule.html" class="btn btn-ghost btn-sm">View all →</a>
+      </div>
+      <div id="tasksList">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- Recent Journal -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Recent Activity</div>
+          <div class="card-subtitle">Latest journal entries</div>
+        </div>
+        <a href="journal.html" class="btn btn-ghost btn-sm">View all →</a>
+      </div>
+      <div id="journalList">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats Row -->
+  <div class="grid-4 mt-lg" id="quickStats">
+    <div class="stat-card">
+      <div class="stat-label">Fish</div>
+      <div class="stat-value" id="statFish">–</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Corals</div>
+      <div class="stat-value" id="statCorals">–</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Inverts</div>
+      <div class="stat-value" id="statInverts">–</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Equipment</div>
+      <div class="stat-value" id="statEquipment">–</div>
+    </div>
+  </div>
+</main>
+
+<script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schedule | Reef Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪸</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .task-item {
+      background: var(--ocean-card);
+      border: 1px solid var(--ocean-border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: border-color .2s;
+    }
+    .task-item.overdue  { border-left: 3px solid var(--coral); }
+    .task-item.due-soon { border-left: 3px solid var(--yellow); }
+    .task-item.upcoming { border-left: 3px solid var(--ocean-border); }
+    .task-item.done     { opacity: .55; }
+    .task-check {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--ocean-border);
+      flex-shrink: 0;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
+    }
+    .task-check:hover { border-color: var(--green); background: var(--green-glow); }
+    .task-check.checked { background: var(--green); border-color: var(--green); }
+    .task-info { flex: 1; }
+    .task-name { font-weight: 600; font-size: .95rem; }
+    .task-meta { font-size: .8rem; color: var(--text-muted); margin-top: 2px; }
+    .section-label { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin: 1.5rem 0 .75rem; display:flex; align-items:center; gap:.5rem; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🪸 <span>Reef Tracker</span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html"       class="nav-link" data-page="dashboard">Dashboard</a>
+      <a href="parameters.html"  class="nav-link" data-page="parameters">Parameters</a>
+      <a href="journal.html"     class="nav-link" data-page="journal">Journal</a>
+      <a href="livestock.html"   class="nav-link" data-page="livestock">Livestock</a>
+      <a href="schedule.html"    class="nav-link" data-page="schedule">Schedule</a>
+      <a href="equipment.html"   class="nav-link" data-page="equipment">Equipment</a>
+      <a href="dosing.html"      class="nav-link" data-page="dosing">Dosing</a>
+      <a href="calculators.html" class="nav-link" data-page="calculators">Calculators</a>
+    </div>
+    <button class="nav-menu-btn" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-header-row">
+    <div class="page-header" style="margin-bottom:0">
+      <h1>Maintenance Schedule</h1>
+      <p>Track recurring tasks and never miss a water change</p>
+    </div>
+    <div style="display:flex;gap:.5rem;">
+      <button class="btn btn-secondary btn-sm" id="enableNotifBtn">🔔 Enable Reminders</button>
+      <button class="btn btn-primary" id="addTaskBtn">+ Add Task</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid-4 mb-lg">
+    <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value text-coral" id="statOverdue">–</div></div>
+    <div class="stat-card"><div class="stat-label">Due Today</div><div class="stat-value text-yellow" id="statToday">–</div></div>
+    <div class="stat-card"><div class="stat-label">This Week</div><div class="stat-value text-teal" id="statWeek">–</div></div>
+    <div class="stat-card"><div class="stat-label">Total Tasks</div><div class="stat-value" id="statTotal">–</div></div>
+  </div>
+
+  <!-- Task List -->
+  <div id="taskContainer">
+    <div class="loading"><div class="spinner"></div> Loading…</div>
+  </div>
+
+  <div id="emptyState" class="hidden">
+    <div class="empty-state">
+      <div class="empty-icon">📅</div>
+      <h3>No tasks yet</h3>
+      <p>Add recurring maintenance tasks like water changes, parameter testing, and equipment cleaning.</p>
+      <button class="btn btn-primary" id="addFirstBtn">+ Add Task</button>
+    </div>
+  </div>
+</main>
+
+<!-- Add/Edit Task Modal -->
+<div class="modal-overlay hidden" id="taskModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="taskModalTitle">Add Task</h3>
+      <button class="btn btn-ghost btn-sm" id="closeModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Task Name</label>
+        <input type="text" class="form-control" id="taskName" placeholder="e.g. Weekly Water Change">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-select" id="taskCategory">
+            <option value="water_change">Water Change</option>
+            <option value="testing">Parameter Testing</option>
+            <option value="equipment">Equipment Maintenance</option>
+            <option value="dosing">Dosing</option>
+            <option value="feeding">Feeding</option>
+            <option value="cleaning">Cleaning</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Frequency</label>
+          <select class="form-select" id="taskFrequency">
+            <option value="daily">Daily</option>
+            <option value="every2days">Every 2 days</option>
+            <option value="weekly" selected>Weekly</option>
+            <option value="biweekly">Every 2 weeks</option>
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="custom">Custom (days)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group hidden" id="customDaysGroup">
+        <label class="form-label">Every N Days</label>
+        <input type="number" class="form-control" id="customDays" min="1" value="14">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Start Date / First Due</label>
+          <input type="date" class="form-control" id="taskDueDate">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Completed</label>
+          <input type="date" class="form-control" id="taskLastCompleted">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes / Instructions</label>
+        <textarea class="form-textarea" id="taskNotes" placeholder="Specific instructions or reminders…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm hidden" id="deleteTaskBtn">Delete</button>
+      <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveTaskBtn">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Complete Task Modal -->
+<div class="modal-overlay hidden" id="completeModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <h3>Mark Complete</h3>
+      <button class="btn btn-ghost btn-sm" id="closeCompleteModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="text-sm" id="completeTaskName" style="font-weight:600;margin-bottom:.75rem;"></p>
+      <div class="form-group">
+        <label class="form-label">Completed On</label>
+        <input type="date" class="form-control" id="completeDate">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes (optional)</label>
+        <textarea class="form-textarea" id="completeNotes" placeholder="Any observations or issues…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="cancelComplete">Cancel</button>
+      <button class="btn btn-success" id="confirmComplete">✓ Mark Complete</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/schedule.js"></script>
+</body>
+</html>

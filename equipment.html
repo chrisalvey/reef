@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equipment | Reef Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪸</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .equip-card {
+      background: var(--ocean-card);
+      border: 1px solid var(--ocean-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: .75rem;
+      cursor: pointer;
+      transition: border-color .2s, transform .15s;
+    }
+    .equip-card:hover { border-color: var(--teal); transform: translateY(-2px); }
+    .equip-card.service-overdue { border-left: 3px solid var(--coral); }
+    .equip-card.service-soon    { border-left: 3px solid var(--yellow); }
+    .equip-icon { font-size: 1.75rem; }
+    .equip-name { font-weight: 600; font-size: 1rem; }
+    .equip-type { font-size: .78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+    .equip-service { font-size: .8rem; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🪸 <span>Reef Tracker</span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html"       class="nav-link" data-page="dashboard">Dashboard</a>
+      <a href="parameters.html"  class="nav-link" data-page="parameters">Parameters</a>
+      <a href="journal.html"     class="nav-link" data-page="journal">Journal</a>
+      <a href="livestock.html"   class="nav-link" data-page="livestock">Livestock</a>
+      <a href="schedule.html"    class="nav-link" data-page="schedule">Schedule</a>
+      <a href="equipment.html"   class="nav-link" data-page="equipment">Equipment</a>
+      <a href="dosing.html"      class="nav-link" data-page="dosing">Dosing</a>
+      <a href="calculators.html" class="nav-link" data-page="calculators">Calculators</a>
+    </div>
+    <button class="nav-menu-btn" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-header-row">
+    <div class="page-header" style="margin-bottom:0">
+      <h1>Equipment</h1>
+      <p>Track hardware and schedule maintenance</p>
+    </div>
+    <div style="display:flex;gap:.5rem;">
+      <select class="form-select" id="typeFilter" style="width:auto;">
+        <option value="">All Types</option>
+        <option value="light">Lighting</option>
+        <option value="pump">Pump / Powerhead</option>
+        <option value="skimmer">Skimmer</option>
+        <option value="heater">Heater / Chiller</option>
+        <option value="filter">Filter / Reactor</option>
+        <option value="dosing_pump">Dosing Pump</option>
+        <option value="controller">Controller / Monitor</option>
+        <option value="other">Other</option>
+      </select>
+      <button class="btn btn-primary" id="addEquipBtn">+ Add Equipment</button>
+    </div>
+  </div>
+
+  <!-- Equipment grid -->
+  <div class="grid-3" id="equipGrid" style="align-items:start;">
+    <div class="loading" style="grid-column:1/-1;"><div class="spinner"></div> Loading…</div>
+  </div>
+
+  <div id="emptyState" class="hidden">
+    <div class="empty-state">
+      <div class="empty-icon">⚙️</div>
+      <h3>No equipment yet</h3>
+      <p>Add your lights, pumps, skimmer, and other equipment to track service history.</p>
+      <button class="btn btn-primary" id="addFirstBtn">+ Add Equipment</button>
+    </div>
+  </div>
+</main>
+
+<!-- Add/Edit Equipment Modal -->
+<div class="modal-overlay hidden" id="equipModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="equipModalTitle">Add Equipment</h3>
+      <button class="btn btn-ghost btn-sm" id="closeModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Name / Model</label>
+          <input type="text" class="form-control" id="equipName" placeholder="e.g. Kessil A360X">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-select" id="equipType">
+            <option value="light">Lighting</option>
+            <option value="pump">Pump / Powerhead</option>
+            <option value="skimmer">Skimmer</option>
+            <option value="heater">Heater / Chiller</option>
+            <option value="filter">Filter / Reactor</option>
+            <option value="dosing_pump">Dosing Pump</option>
+            <option value="controller">Controller / Monitor</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Brand / Manufacturer (optional)</label>
+        <input type="text" class="form-control" id="equipBrand" placeholder="e.g. Kessil">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date Added / Purchased</label>
+          <input type="date" class="form-control" id="equipDateAdded">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Warranty Expires (optional)</label>
+          <input type="date" class="form-control" id="equipWarranty">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Last Serviced</label>
+          <input type="date" class="form-control" id="equipLastService">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Service Every (days)</label>
+          <input type="number" class="form-control" id="equipServiceInterval" placeholder="e.g. 90" min="1">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" id="equipNotes" placeholder="Settings, quirks, purchase info, serial number…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm hidden" id="deleteBtn">Delete</button>
+      <button class="btn btn-secondary btn-sm hidden" id="serviceBtn">✓ Log Service</button>
+      <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/equipment.js"></script>
+</body>
+</html>

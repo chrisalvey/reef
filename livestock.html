@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Livestock | Reef Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪸</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .livestock-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+    .livestock-card {
+      background: var(--ocean-card);
+      border: 1px solid var(--ocean-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: border-color .2s, transform .15s;
+    }
+    .livestock-card:hover { border-color: var(--teal); transform: translateY(-2px); }
+    .livestock-card .lc-icon { font-size: 2rem; margin-bottom:.5rem; }
+    .livestock-card .lc-name { font-weight: 600; font-size: 1rem; color: var(--white); }
+    .livestock-card .lc-species { font-size: .8rem; color: var(--text-muted); margin-top:2px; }
+    .livestock-card .lc-meta { display:flex; align-items:center; justify-content:space-between; margin-top:.75rem; }
+    .type-section { margin-bottom: 2rem; }
+    .type-header { font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin-bottom:.75rem; display:flex; align-items:center; gap:.5rem; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🪸 <span>Reef Tracker</span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html"       class="nav-link" data-page="dashboard">Dashboard</a>
+      <a href="parameters.html"  class="nav-link" data-page="parameters">Parameters</a>
+      <a href="journal.html"     class="nav-link" data-page="journal">Journal</a>
+      <a href="livestock.html"   class="nav-link" data-page="livestock">Livestock</a>
+      <a href="schedule.html"    class="nav-link" data-page="schedule">Schedule</a>
+      <a href="equipment.html"   class="nav-link" data-page="equipment">Equipment</a>
+      <a href="dosing.html"      class="nav-link" data-page="dosing">Dosing</a>
+      <a href="calculators.html" class="nav-link" data-page="calculators">Calculators</a>
+    </div>
+    <button class="nav-menu-btn" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-header-row">
+    <div class="page-header" style="margin-bottom:0">
+      <h1>Livestock</h1>
+      <p>Manage your fish, corals, and invertebrates</p>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <select class="form-select" id="typeFilter" style="width:auto;">
+        <option value="">All Types</option>
+        <option value="fish">Fish</option>
+        <option value="coral">Coral</option>
+        <option value="invert">Invertebrate</option>
+        <option value="plant">Plant / Macro</option>
+      </select>
+      <select class="form-select" id="healthFilter" style="width:auto;">
+        <option value="">All Health</option>
+        <option value="excellent">Excellent</option>
+        <option value="good">Good</option>
+        <option value="fair">Fair</option>
+        <option value="poor">Poor</option>
+      </select>
+      <button class="btn btn-primary" id="addLivestockBtn">+ Add Livestock</button>
+    </div>
+  </div>
+
+  <!-- Summary row -->
+  <div class="grid-4 mb-lg" id="summaryRow">
+    <div class="stat-card"><div class="stat-label">Fish</div><div class="stat-value" id="countFish">–</div></div>
+    <div class="stat-card"><div class="stat-label">Corals</div><div class="stat-value" id="countCorals">–</div></div>
+    <div class="stat-card"><div class="stat-label">Inverts</div><div class="stat-value" id="countInverts">–</div></div>
+    <div class="stat-card"><div class="stat-label">Plants</div><div class="stat-value" id="countPlants">–</div></div>
+  </div>
+
+  <!-- Livestock grid -->
+  <div id="livestockContainer">
+    <div class="loading"><div class="spinner"></div> Loading…</div>
+  </div>
+
+  <div id="emptyState" class="hidden">
+    <div class="empty-state">
+      <div class="empty-icon">🐠</div>
+      <h3>No livestock yet</h3>
+      <p>Add your first fish, coral, or invertebrate to start tracking your reef inhabitants.</p>
+      <button class="btn btn-primary" id="addFirstBtn">+ Add Livestock</button>
+    </div>
+  </div>
+</main>
+
+<!-- Add / Edit Livestock Modal -->
+<div class="modal-overlay hidden" id="livestockModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="livestockModalTitle">Add Livestock</h3>
+      <button class="btn btn-ghost btn-sm" id="closeModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Common Name</label>
+          <input type="text" class="form-control" id="lcName" placeholder="e.g. Ocellaris Clownfish">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-select" id="lcType">
+            <option value="fish">Fish</option>
+            <option value="coral">Coral</option>
+            <option value="invert">Invertebrate</option>
+            <option value="plant">Plant / Macro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Species / Scientific Name (optional)</label>
+        <input type="text" class="form-control" id="lcSpecies" placeholder="e.g. Amphiprion ocellaris">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date Added</label>
+          <input type="date" class="form-control" id="lcDateAdded">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Health Status</label>
+          <select class="form-select" id="lcHealth">
+            <option value="excellent">Excellent</option>
+            <option value="good">Good</option>
+            <option value="fair">Fair</option>
+            <option value="poor">Poor</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Location in Tank (optional)</label>
+        <input type="text" class="form-control" id="lcLocation" placeholder="e.g. Top right rock, sandbed">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" id="lcNotes" placeholder="Source, price, behavior, diet preferences…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm hidden" id="deleteBtn">Delete</button>
+      <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/livestock.js"></script>
+</body>
+</html>

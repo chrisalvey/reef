@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculators | Reef Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪸</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .calc-result {
+      background: var(--ocean-mid);
+      border: 1px solid var(--teal);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      text-align: center;
+      margin-top: .5rem;
+    }
+    .calc-result .result-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--teal-light);
+    }
+    .calc-result .result-label {
+      font-size: .8rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .calc-result.hidden { display: none; }
+    .calc-panel { display: none; }
+    .calc-panel.active { display: block; }
+    .tabs { flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🪸 <span>Reef Tracker</span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html"       class="nav-link" data-page="dashboard">Dashboard</a>
+      <a href="parameters.html"  class="nav-link" data-page="parameters">Parameters</a>
+      <a href="journal.html"     class="nav-link" data-page="journal">Journal</a>
+      <a href="livestock.html"   class="nav-link" data-page="livestock">Livestock</a>
+      <a href="schedule.html"    class="nav-link" data-page="schedule">Schedule</a>
+      <a href="equipment.html"   class="nav-link" data-page="equipment">Equipment</a>
+      <a href="dosing.html"      class="nav-link" data-page="dosing">Dosing</a>
+      <a href="calculators.html" class="nav-link" data-page="calculators">Calculators</a>
+    </div>
+    <button class="nav-menu-btn" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-header">
+    <h1>Reef Calculators</h1>
+    <p>Offline-capable tools for common reef math</p>
+  </div>
+
+  <div class="tabs mb-lg" id="calcTabs">
+    <button class="tab active" data-calc="alkalinity">Alkalinity</button>
+    <button class="tab" data-calc="calcium">Calcium</button>
+    <button class="tab" data-calc="magnesium">Magnesium</button>
+    <button class="tab" data-calc="salinity">Salinity / SG</button>
+    <button class="tab" data-calc="volume">Tank Volume</button>
+    <button class="tab" data-calc="twopart">Two-Part</button>
+    <button class="tab" data-calc="waterchange">Water Change</button>
+  </div>
+
+  <div style="max-width:560px;">
+
+    <!-- Alkalinity Dose Calculator -->
+    <div class="calc-panel active card" id="calc-alkalinity">
+      <div class="card-title" style="margin-bottom:.25rem;">Alkalinity Dose Calculator</div>
+      <p class="text-sm text-muted mb-md">How much to dose to raise alkalinity using sodium bicarbonate (baking soda) or sodium carbonate (soda ash).</p>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tank Volume (gallons)</label>
+            <input type="number" class="form-control" id="alk-volume" placeholder="100" min="1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Current Alk (dKH)</label>
+            <input type="number" class="form-control" id="alk-current" placeholder="7.5" step=".1">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Target Alk (dKH)</label>
+            <input type="number" class="form-control" id="alk-target" placeholder="9.0" step=".1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Reagent</label>
+            <select class="form-select" id="alk-reagent">
+              <option value="baking_soda">Sodium Bicarbonate (baking soda)</option>
+              <option value="soda_ash">Sodium Carbonate (soda ash)</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="calcAlkalinity()">Calculate</button>
+        <div class="calc-result hidden" id="alk-result">
+          <div class="result-value" id="alk-result-val"></div>
+          <div class="result-label" id="alk-result-label"></div>
+        </div>
+        <div class="alert alert-info text-sm" style="margin-top:.5rem;">
+          💡 Raise alk no more than 1–2 dKH per day. Split large doses across multiple days.
+        </div>
+      </div>
+    </div>
+
+    <!-- Calcium Dose Calculator -->
+    <div class="calc-panel card" id="calc-calcium">
+      <div class="card-title" style="margin-bottom:.25rem;">Calcium Dose Calculator</div>
+      <p class="text-sm text-muted mb-md">How much calcium chloride to add to raise calcium levels.</p>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tank Volume (gallons)</label>
+            <input type="number" class="form-control" id="ca-volume" placeholder="100" min="1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Current Calcium (ppm)</label>
+            <input type="number" class="form-control" id="ca-current" placeholder="380">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Calcium (ppm)</label>
+          <input type="number" class="form-control" id="ca-target" placeholder="420">
+        </div>
+        <button class="btn btn-primary" onclick="calcCalcium()">Calculate</button>
+        <div class="calc-result hidden" id="ca-result">
+          <div class="result-value" id="ca-result-val"></div>
+          <div class="result-label">grams of calcium chloride (CaCl₂·2H₂O) to add</div>
+        </div>
+        <div class="alert alert-info text-sm">
+          💡 Raise calcium no more than 20–30 ppm per dose. Monitor alk — calcium and alkalinity must be balanced.
+        </div>
+      </div>
+    </div>
+
+    <!-- Magnesium Dose Calculator -->
+    <div class="calc-panel card" id="calc-magnesium">
+      <div class="card-title" style="margin-bottom:.25rem;">Magnesium Dose Calculator</div>
+      <p class="text-sm text-muted mb-md">How much magnesium chloride or magnesium sulfate to add.</p>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tank Volume (gallons)</label>
+            <input type="number" class="form-control" id="mg-volume" placeholder="100" min="1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Current Magnesium (ppm)</label>
+            <input type="number" class="form-control" id="mg-current" placeholder="1250">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Target Magnesium (ppm)</label>
+            <input type="number" class="form-control" id="mg-target" placeholder="1300">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Reagent</label>
+            <select class="form-select" id="mg-reagent">
+              <option value="mgcl2">Magnesium Chloride (MgCl₂·6H₂O)</option>
+              <option value="mgso4">Magnesium Sulfate (Epsom Salt)</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="calcMagnesium()">Calculate</button>
+        <div class="calc-result hidden" id="mg-result">
+          <div class="result-value" id="mg-result-val"></div>
+          <div class="result-label" id="mg-result-label"></div>
+        </div>
+        <div class="alert alert-info text-sm">
+          💡 Use a 3:1 ratio of MgCl₂ to Epsom salt for best results. Raise no more than 100 ppm per day.
+        </div>
+      </div>
+    </div>
+
+    <!-- Salinity / SG Converter -->
+    <div class="calc-panel card" id="calc-salinity">
+      <div class="card-title" style="margin-bottom:.25rem;">Salinity / Specific Gravity Converter</div>
+      <p class="text-sm text-muted mb-md">Convert between salinity (ppt / ‰) and specific gravity (SG) at 77°F (25°C).</p>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Salinity (ppt / ‰)</label>
+          <input type="number" class="form-control" id="sal-ppt" placeholder="35" step=".1" oninput="convertSalinityFromPpt()">
+          <div class="form-hint">Typical reef: 34–36 ppt</div>
+        </div>
+        <div style="text-align:center;color:var(--text-muted);font-size:.8rem;">— or —</div>
+        <div class="form-group">
+          <label class="form-label">Specific Gravity (SG)</label>
+          <input type="number" class="form-control" id="sal-sg" placeholder="1.026" step=".0001" oninput="convertSalinityFromSG()">
+          <div class="form-hint">Typical reef: 1.024–1.026</div>
+        </div>
+        <div class="alert alert-info text-sm">
+          💡 SG is temperature-dependent. Always calibrate your refractometer or measure at the same temperature.
+        </div>
+      </div>
+    </div>
+
+    <!-- Tank Volume Calculator -->
+    <div class="calc-panel card" id="calc-volume">
+      <div class="card-title" style="margin-bottom:.25rem;">Tank Volume Calculator</div>
+      <p class="text-sm text-muted mb-md">Calculate total water volume from tank dimensions.</p>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Tank Shape</label>
+          <select class="form-select" id="vol-shape" onchange="updateVolumeForm()">
+            <option value="rectangle">Rectangle / Cube</option>
+            <option value="cylinder">Cylinder</option>
+            <option value="bowfront">Bow Front (approx.)</option>
+          </select>
+        </div>
+        <div id="vol-rect-fields">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Length (inches)</label>
+              <input type="number" class="form-control" id="vol-length" placeholder="48">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Width (inches)</label>
+              <input type="number" class="form-control" id="vol-width" placeholder="18">
+            </div>
+          </div>
+          <div class="form-group mt-sm">
+            <label class="form-label">Height (inches)</label>
+            <input type="number" class="form-control" id="vol-height" placeholder="21">
+          </div>
+        </div>
+        <div id="vol-cyl-fields" class="hidden">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Diameter (inches)</label>
+              <input type="number" class="form-control" id="vol-diameter" placeholder="24">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Height (inches)</label>
+              <input type="number" class="form-control" id="vol-cyl-height" placeholder="24">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fill % (account for rock/sand)</label>
+          <input type="number" class="form-control" id="vol-fill" value="85" min="1" max="100">
+          <div class="form-hint">Subtract rock/sand displacement — typically 80–90%</div>
+        </div>
+        <button class="btn btn-primary" onclick="calcVolume()">Calculate Volume</button>
+        <div class="calc-result hidden" id="vol-result">
+          <div class="result-value" id="vol-result-val"></div>
+          <div class="result-label" id="vol-result-label"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Two-Part Dosing Calculator -->
+    <div class="calc-panel card" id="calc-twopart">
+      <div class="card-title" style="margin-bottom:.25rem;">Two-Part Daily Dose Calculator</div>
+      <p class="text-sm text-muted mb-md">Estimate daily two-part dose based on your tank's coral consumption.</p>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tank Volume (gallons)</label>
+            <input type="number" class="form-control" id="tp-volume" placeholder="100">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Coral Load</label>
+            <select class="form-select" id="tp-load">
+              <option value="light">Light (few SPS/LPS)</option>
+              <option value="moderate">Moderate</option>
+              <option value="heavy">Heavy (SPS dominant)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Alk drop per week (dKH)</label>
+            <input type="number" class="form-control" id="tp-alk-drop" placeholder="2.0" step=".1">
+            <div class="form-hint">Measure Monday vs Sunday</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ca drop per week (ppm)</label>
+            <input type="number" class="form-control" id="tp-ca-drop" placeholder="20">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="calcTwoPart()">Calculate</button>
+        <div class="calc-result hidden" id="tp-result">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div>
+              <div class="result-value" id="tp-result-alk"></div>
+              <div class="result-label">mL Part A (Alk) per day</div>
+            </div>
+            <div>
+              <div class="result-value" id="tp-result-ca"></div>
+              <div class="result-label">mL Part B (Ca/Mg) per day</div>
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-info text-sm">
+          💡 Measure actual parameter consumption over a full week for accurate results. Adjust weekly.
+        </div>
+      </div>
+    </div>
+
+    <!-- Water Change Dilution Calculator -->
+    <div class="calc-panel card" id="calc-waterchange">
+      <div class="card-title" style="margin-bottom:.25rem;">Water Change Dilution Calculator</div>
+      <p class="text-sm text-muted mb-md">How much a water change will dilute a parameter (e.g. nitrate, phosphate).</p>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tank Volume (gallons)</label>
+            <input type="number" class="form-control" id="wc-volume" placeholder="100">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Water Change Size (gallons)</label>
+            <input type="number" class="form-control" id="wc-change" placeholder="10">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Current Parameter Value</label>
+            <input type="number" class="form-control" id="wc-current" placeholder="20" step="any">
+          </div>
+          <div class="form-group">
+            <label class="form-label">New Water Value</label>
+            <input type="number" class="form-control" id="wc-new-water" placeholder="0" step="any">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="calcWaterChange()">Calculate</button>
+        <div class="calc-result hidden" id="wc-result">
+          <div class="result-value" id="wc-result-val"></div>
+          <div class="result-label" id="wc-result-label"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /max-width -->
+</main>
+
+<script>
+  // Nav active state
+  document.querySelectorAll('.nav-link[data-page="calculators"]').forEach(el => el.classList.add('active'));
+
+  // Tab switching
+  document.getElementById('calcTabs').addEventListener('click', e => {
+    const tab = e.target.closest('.tab');
+    if (!tab) return;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.calc-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('calc-' + tab.dataset.calc).classList.add('active');
+  });
+
+  // ── Alkalinity Calculator ─────────────────────────────────
+  function calcAlkalinity() {
+    const vol    = parseFloat(document.getElementById('alk-volume').value);
+    const curr   = parseFloat(document.getElementById('alk-current').value);
+    const target = parseFloat(document.getElementById('alk-target').value);
+    const reag   = document.getElementById('alk-reagent').value;
+    if (!vol || isNaN(curr) || isNaN(target)) return alert('Please fill all fields.');
+    const delta = target - curr;
+    if (delta <= 0) { alert('Target must be higher than current.'); return; }
+    // 1 dKH per 100 gal ≈ 7.14g NaHCO3 or 3.78g Na2CO3
+    const liters = vol * 3.785;
+    let grams, label;
+    if (reag === 'baking_soda') {
+      grams = delta * (liters / 100) * 7.14;
+      label = 'grams of sodium bicarbonate (baking soda)';
+    } else {
+      grams = delta * (liters / 100) * 3.78;
+      label = 'grams of sodium carbonate (soda ash)';
+    }
+    showResult('alk-result', grams.toFixed(1) + 'g', label);
+  }
+
+  // ── Calcium Calculator ────────────────────────────────────
+  function calcCalcium() {
+    const vol    = parseFloat(document.getElementById('ca-volume').value);
+    const curr   = parseFloat(document.getElementById('ca-current').value);
+    const target = parseFloat(document.getElementById('ca-target').value);
+    if (!vol || isNaN(curr) || isNaN(target)) return alert('Please fill all fields.');
+    const delta = target - curr;
+    if (delta <= 0) { alert('Target must be higher than current.'); return; }
+    // ~1.47g CaCl2·2H2O per ppm per 100L
+    const liters = vol * 3.785;
+    const grams  = delta * (liters / 100) * 1.47;
+    document.getElementById('ca-result').classList.remove('hidden');
+    document.getElementById('ca-result-val').textContent = grams.toFixed(1) + 'g';
+  }
+
+  // ── Magnesium Calculator ──────────────────────────────────
+  function calcMagnesium() {
+    const vol    = parseFloat(document.getElementById('mg-volume').value);
+    const curr   = parseFloat(document.getElementById('mg-current').value);
+    const target = parseFloat(document.getElementById('mg-target').value);
+    const reag   = document.getElementById('mg-reagent').value;
+    if (!vol || isNaN(curr) || isNaN(target)) return alert('Please fill all fields.');
+    const delta = target - curr;
+    if (delta <= 0) { alert('Target must be higher than current.'); return; }
+    const liters = vol * 3.785;
+    let grams, label;
+    if (reag === 'mgcl2') {
+      // ~3.73g MgCl2·6H2O per ppm per 100L
+      grams = delta * (liters / 100) * 3.73;
+      label = 'grams of magnesium chloride (MgCl₂·6H₂O)';
+    } else {
+      // ~2.45g MgSO4·7H2O per ppm per 100L
+      grams = delta * (liters / 100) * 2.45;
+      label = 'grams of magnesium sulfate (Epsom salt)';
+    }
+    showResult('mg-result', grams.toFixed(1) + 'g', label);
+  }
+
+  // ── Salinity Converter ────────────────────────────────────
+  // At 25°C: SG ≈ 1 + (salinity_ppt × 0.000714)
+  function convertSalinityFromPpt() {
+    const ppt = parseFloat(document.getElementById('sal-ppt').value);
+    if (isNaN(ppt)) return;
+    const sg = 1 + (ppt * 0.000714);
+    document.getElementById('sal-sg').value = sg.toFixed(4);
+  }
+  function convertSalinityFromSG() {
+    const sg = parseFloat(document.getElementById('sal-sg').value);
+    if (isNaN(sg)) return;
+    const ppt = (sg - 1) / 0.000714;
+    document.getElementById('sal-ppt').value = ppt.toFixed(1);
+  }
+
+  // ── Volume Calculator ─────────────────────────────────────
+  function updateVolumeForm() {
+    const shape = document.getElementById('vol-shape').value;
+    document.getElementById('vol-rect-fields').classList.toggle('hidden', shape === 'cylinder');
+    document.getElementById('vol-cyl-fields').classList.toggle('hidden', shape !== 'cylinder');
+  }
+
+  function calcVolume() {
+    const shape = document.getElementById('vol-shape').value;
+    const fill  = parseFloat(document.getElementById('vol-fill').value) / 100;
+    let cubicInches;
+    if (shape === 'cylinder') {
+      const d = parseFloat(document.getElementById('vol-diameter').value);
+      const h = parseFloat(document.getElementById('vol-cyl-height').value);
+      if (!d || !h) return alert('Please fill all fields.');
+      cubicInches = Math.PI * (d / 2) ** 2 * h;
+    } else {
+      const l = parseFloat(document.getElementById('vol-length').value);
+      const w = parseFloat(document.getElementById('vol-width').value);
+      const h = parseFloat(document.getElementById('vol-height').value);
+      if (!l || !w || !h) return alert('Please fill all fields.');
+      cubicInches = l * w * h * (shape === 'bowfront' ? 1.12 : 1);
+    }
+    const gallons    = cubicInches / 231;
+    const usableGal  = gallons * fill;
+    showResult('vol-result',
+      usableGal.toFixed(1) + ' gal',
+      `Gross: ${gallons.toFixed(1)} gal — Usable (${Math.round(fill * 100)}%): ${usableGal.toFixed(1)} gal`
+    );
+  }
+
+  // ── Two-Part Calculator ───────────────────────────────────
+  function calcTwoPart() {
+    const alkDrop = parseFloat(document.getElementById('tp-alk-drop').value);
+    const caDrop  = parseFloat(document.getElementById('tp-ca-drop').value);
+    const vol     = parseFloat(document.getElementById('tp-volume').value);
+    if (isNaN(alkDrop) || isNaN(caDrop) || !vol) return alert('Please fill all fields.');
+    const liters = vol * 3.785;
+    // Standard 2-part A (alk): raises alk ~1 dKH per 7mL/100L
+    const alkPerDay = (alkDrop / 7) * (7.14 * liters / 100) * (7 / 7); // mL A per day
+    // Approx: 1 dKH per 100L requires ~7.14g = ~7mL part A per week / 7 = mL/day
+    const alkMlDay = (alkDrop * liters / 100) / 7;
+    const caMlDay  = (caDrop  * liters / 100) / 7;
+    document.getElementById('tp-result').classList.remove('hidden');
+    document.getElementById('tp-result-alk').textContent = alkMlDay.toFixed(1);
+    document.getElementById('tp-result-ca').textContent  = caMlDay.toFixed(1);
+  }
+
+  // ── Water Change Calculator ───────────────────────────────
+  function calcWaterChange() {
+    const tankVol  = parseFloat(document.getElementById('wc-volume').value);
+    const wcVol    = parseFloat(document.getElementById('wc-change').value);
+    const curr     = parseFloat(document.getElementById('wc-current').value);
+    const newWater = parseFloat(document.getElementById('wc-new-water').value);
+    if (!tankVol || !wcVol || isNaN(curr) || isNaN(newWater)) return alert('Please fill all fields.');
+    const pct   = wcVol / tankVol;
+    const after = curr * (1 - pct) + newWater * pct;
+    const pctChange = ((curr - after) / curr * 100).toFixed(1);
+    showResult('wc-result',
+      after.toFixed(2),
+      `After ${Math.round(pct * 100)}% water change — reduced by ${pctChange}%`
+    );
+  }
+
+  // ── Helper ────────────────────────────────────────────────
+  function showResult(id, val, label) {
+    const el = document.getElementById(id);
+    el.classList.remove('hidden');
+    const valEl = el.querySelector('.result-value');
+    const lblEl = el.querySelector('.result-label');
+    if (valEl) valEl.textContent = val;
+    if (lblEl) lblEl.textContent = label;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Journal | Reef Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪸</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🪸 <span>Reef Tracker</span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html"       class="nav-link" data-page="dashboard">Dashboard</a>
+      <a href="parameters.html"  class="nav-link" data-page="parameters">Parameters</a>
+      <a href="journal.html"     class="nav-link" data-page="journal">Journal</a>
+      <a href="livestock.html"   class="nav-link" data-page="livestock">Livestock</a>
+      <a href="schedule.html"    class="nav-link" data-page="schedule">Schedule</a>
+      <a href="equipment.html"   class="nav-link" data-page="equipment">Equipment</a>
+      <a href="dosing.html"      class="nav-link" data-page="dosing">Dosing</a>
+      <a href="calculators.html" class="nav-link" data-page="calculators">Calculators</a>
+    </div>
+    <button class="nav-menu-btn" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-header-row">
+    <div class="page-header" style="margin-bottom:0">
+      <h1>Tank Journal</h1>
+      <p>Log and search all reef activity</p>
+    </div>
+    <button class="btn btn-primary" id="addEntryBtn">+ New Entry</button>
+  </div>
+
+  <!-- Filters -->
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;align-items:center;">
+    <div class="search-bar" style="flex:1;min-width:200px;">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="form-control" id="searchInput" placeholder="Search journal…">
+    </div>
+    <select class="form-select" id="typeFilter" style="width:auto;">
+      <option value="">All Types</option>
+      <option value="water_change">Water Change</option>
+      <option value="observation">Observation</option>
+      <option value="addition">Addition</option>
+      <option value="maintenance">Maintenance</option>
+      <option value="treatment">Treatment</option>
+      <option value="other">Other</option>
+    </select>
+    <input type="date" class="form-control" id="dateFilter" style="width:auto;" title="Filter by date">
+  </div>
+
+  <!-- Entries List -->
+  <div id="entriesList" style="display:flex;flex-direction:column;gap:1rem;">
+    <div class="loading"><div class="spinner"></div> Loading…</div>
+  </div>
+
+  <div id="noResults" class="hidden">
+    <div class="empty-state">
+      <div class="empty-icon">📔</div>
+      <h3>No entries found</h3>
+      <p>Try adjusting your filters or add your first journal entry.</p>
+    </div>
+  </div>
+</main>
+
+<!-- Add / Edit Entry Modal -->
+<div class="modal-overlay hidden" id="entryModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="entryModalTitle">New Journal Entry</h3>
+      <button class="btn btn-ghost btn-sm" id="closeEntryModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Entry Type</label>
+        <select class="form-select" id="entryType">
+          <option value="observation">Observation</option>
+          <option value="water_change">Water Change</option>
+          <option value="addition">Addition (livestock/equipment)</option>
+          <option value="maintenance">Maintenance</option>
+          <option value="treatment">Treatment</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Title</label>
+        <input type="text" class="form-control" id="entryTitle" placeholder="Brief summary…">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date & Time</label>
+        <input type="datetime-local" class="form-control" id="entryDate">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" id="entryNotes" style="min-height:120px;" placeholder="Describe what happened, what you noticed, measurements, quantities…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm hidden" id="deleteEntryBtn">Delete</button>
+      <button class="btn btn-secondary" id="cancelEntryBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveEntryBtn">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/journal.js"></script>
+</body>
+</html>

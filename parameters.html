@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parameters | Reef Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪸</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🪸 <span>Reef Tracker</span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html"       class="nav-link" data-page="dashboard">Dashboard</a>
+      <a href="parameters.html"  class="nav-link" data-page="parameters">Parameters</a>
+      <a href="journal.html"     class="nav-link" data-page="journal">Journal</a>
+      <a href="livestock.html"   class="nav-link" data-page="livestock">Livestock</a>
+      <a href="schedule.html"    class="nav-link" data-page="schedule">Schedule</a>
+      <a href="equipment.html"   class="nav-link" data-page="equipment">Equipment</a>
+      <a href="dosing.html"      class="nav-link" data-page="dosing">Dosing</a>
+      <a href="calculators.html" class="nav-link" data-page="calculators">Calculators</a>
+    </div>
+    <button class="nav-menu-btn" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-header-row">
+    <div class="page-header" style="margin-bottom:0">
+      <h1>Water Parameters</h1>
+      <p>Track, chart, and analyze your reef chemistry</p>
+    </div>
+    <div style="display:flex;gap:.5rem;">
+      <button class="btn btn-secondary btn-sm" id="manageParamsBtn">⚙ Manage Params</button>
+      <button class="btn btn-primary" id="logReadingBtn">+ Log Reading</button>
+    </div>
+  </div>
+
+  <!-- Parameter selector tabs -->
+  <div style="overflow-x:auto;margin-bottom:1.5rem;">
+    <div class="tabs" id="paramTabs" style="min-width:max-content;"></div>
+  </div>
+
+  <div class="grid-2" style="align-items:start">
+    <!-- Left: Current value + chart -->
+    <div style="display:flex;flex-direction:column;gap:1.5rem;">
+      <!-- Current value card -->
+      <div class="card" id="currentValueCard">
+        <div class="card-header">
+          <div>
+            <div class="card-title" id="currentParamName">Alkalinity</div>
+            <div class="card-subtitle" id="currentParamRange"></div>
+          </div>
+          <span id="currentParamBadge" class="badge"></span>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:1rem;margin:1rem 0;">
+          <div class="param-value-big" id="currentValue">–</div>
+          <div style="color:var(--text-secondary);font-size:1rem;margin-bottom:.4rem;" id="currentUnit"></div>
+        </div>
+        <div class="text-xs text-muted" id="currentTimestamp"></div>
+      </div>
+
+      <!-- Chart -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">History</div>
+          <select class="form-select" id="historyRange" style="width:auto;padding:.35rem .6rem;font-size:.8rem;">
+            <option value="30">Last 30 readings</option>
+            <option value="20">Last 20 readings</option>
+            <option value="10">Last 10 readings</option>
+          </select>
+        </div>
+        <div class="chart-container">
+          <canvas id="paramChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Log form + history table -->
+    <div style="display:flex;flex-direction:column;gap:1.5rem;">
+      <!-- Quick log form -->
+      <div class="card" id="logForm">
+        <div class="card-title" style="margin-bottom:1rem;">Log Reading</div>
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Parameter</label>
+              <select class="form-select" id="logParamSelect"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Value</label>
+              <input type="number" class="form-control" id="logValue" step="any" placeholder="0.00">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date & Time</label>
+            <input type="datetime-local" class="form-control" id="logDate">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notes (optional)</label>
+            <textarea class="form-textarea" id="logNotes" placeholder="Any observations…"></textarea>
+          </div>
+          <button class="btn btn-primary w-full" id="saveReadingBtn">Save Reading</button>
+        </div>
+      </div>
+
+      <!-- History table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Reading Log</div>
+          <button class="btn btn-ghost btn-sm" id="exportCsvBtn">↓ CSV</button>
+        </div>
+        <div class="table-wrapper" id="historyTableWrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Value</th>
+                <th>Status</th>
+                <th>Notes</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <tr><td colspan="5"><div class="loading"><div class="spinner"></div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Manage Parameters Modal -->
+<div class="modal-overlay hidden" id="manageModal">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <h3>Manage Parameters</h3>
+      <button class="btn btn-ghost btn-sm" id="closeManageModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="text-sm text-muted mb-md">Enable/disable built-in parameters and set safe ranges. Add custom parameters below.</p>
+      <div id="paramSettingsList" style="display:flex;flex-direction:column;gap:.75rem;"></div>
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:.75rem;">Add Custom Parameter</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input type="text" class="form-control" id="customParamName" placeholder="e.g. Iodine">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unit</label>
+          <input type="text" class="form-control" id="customParamUnit" placeholder="e.g. ppm">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Min</label>
+          <input type="number" class="form-control" id="customParamMin" step="any">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Max</label>
+          <input type="number" class="form-control" id="customParamMax" step="any">
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm mt-sm" id="addCustomParamBtn">+ Add Parameter</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="saveManageModal">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/parameters.js"></script>
+</body>
+</html>

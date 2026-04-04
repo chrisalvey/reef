@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dosing | Reef Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪸</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🪸 <span>Reef Tracker</span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html"       class="nav-link" data-page="dashboard">Dashboard</a>
+      <a href="parameters.html"  class="nav-link" data-page="parameters">Parameters</a>
+      <a href="journal.html"     class="nav-link" data-page="journal">Journal</a>
+      <a href="livestock.html"   class="nav-link" data-page="livestock">Livestock</a>
+      <a href="schedule.html"    class="nav-link" data-page="schedule">Schedule</a>
+      <a href="equipment.html"   class="nav-link" data-page="equipment">Equipment</a>
+      <a href="dosing.html"      class="nav-link" data-page="dosing">Dosing</a>
+      <a href="calculators.html" class="nav-link" data-page="calculators">Calculators</a>
+    </div>
+    <button class="nav-menu-btn" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-header-row">
+    <div class="page-header" style="margin-bottom:0">
+      <h1>Dosing & Supplements</h1>
+      <p>Log and schedule what goes into your tank</p>
+    </div>
+    <div style="display:flex;gap:.5rem;">
+      <button class="btn btn-secondary" id="addSupplementBtn">+ Add Supplement</button>
+      <button class="btn btn-primary" id="logDoseBtn">+ Log Dose</button>
+    </div>
+  </div>
+
+  <div class="grid-2" style="align-items:start;gap:1.5rem;">
+    <!-- Left: Supplements / Active Regimen -->
+    <div>
+      <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:.75rem;">ACTIVE SUPPLEMENTS</div>
+      <div id="supplementsList" style="display:flex;flex-direction:column;gap:.75rem;">
+        <div class="loading"><div class="spinner"></div> Loading…</div>
+      </div>
+      <div id="noSupplements" class="hidden">
+        <div class="empty-state" style="padding:2rem 1rem;">
+          <div class="empty-icon">💊</div>
+          <p>No supplements added yet.</p>
+          <button class="btn btn-secondary btn-sm mt-md" id="addFirstSupplementBtn">+ Add Supplement</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Recent Dose Log -->
+    <div>
+      <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:.75rem;">DOSE LOG</div>
+      <div class="card" style="padding:0;">
+        <div style="padding:.75rem 1rem;border-bottom:1px solid var(--ocean-border);display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;gap:.5rem;align-items:center;">
+            <select class="form-select" id="doseLogFilter" style="width:auto;font-size:.8rem;padding:.3rem .6rem;">
+              <option value="">All Supplements</option>
+            </select>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="exportDoseBtn">↓ CSV</button>
+        </div>
+        <div class="table-wrapper" style="border:none;border-radius:0 0 var(--radius-lg) var(--radius-lg);">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Supplement</th>
+                <th>Amount</th>
+                <th>Notes</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="doseLogBody">
+              <tr><td colspan="5"><div class="loading"><div class="spinner"></div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Add/Edit Supplement Modal -->
+<div class="modal-overlay hidden" id="supplementModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="supplementModalTitle">Add Supplement</h3>
+      <button class="btn btn-ghost btn-sm" id="closeSupplementModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Supplement Name</label>
+          <input type="text" class="form-control" id="suppName" placeholder="e.g. Two Little Fishies C-Balance A">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-select" id="suppType">
+            <option value="two_part_a">Two-Part A (Alk)</option>
+            <option value="two_part_b">Two-Part B (Ca/Mg)</option>
+            <option value="kalkwasser">Kalkwasser</option>
+            <option value="trace_elements">Trace Elements</option>
+            <option value="bacteria">Bacteria / Probiotic</option>
+            <option value="carbon">Carbon Source</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Default Amount</label>
+          <input type="number" class="form-control" id="suppAmount" step="any" placeholder="e.g. 10">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unit</label>
+          <select class="form-select" id="suppUnit">
+            <option value="ml">mL</option>
+            <option value="tsp">tsp</option>
+            <option value="tbsp">tbsp</option>
+            <option value="g">g</option>
+            <option value="drops">drops</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Frequency</label>
+          <select class="form-select" id="suppFrequency">
+            <option value="daily">Daily</option>
+            <option value="every2days">Every 2 days</option>
+            <option value="weekly">Weekly</option>
+            <option value="as_needed">As Needed</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Active</label>
+          <select class="form-select" id="suppActive">
+            <option value="true">Yes — Active</option>
+            <option value="false">No — Paused</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" id="suppNotes" placeholder="Target parameter, manufacturer directions…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm hidden" id="deleteSuppBtn">Delete</button>
+      <button class="btn btn-secondary" id="cancelSuppBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveSuppBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Log Dose Modal -->
+<div class="modal-overlay hidden" id="doseModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <h3>Log Dose</h3>
+      <button class="btn btn-ghost btn-sm" id="closeDoseModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Supplement</label>
+        <select class="form-select" id="doseSupplementSelect"></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Amount</label>
+          <input type="number" class="form-control" id="doseAmount" step="any">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unit</label>
+          <select class="form-select" id="doseUnit">
+            <option value="ml">mL</option>
+            <option value="tsp">tsp</option>
+            <option value="tbsp">tbsp</option>
+            <option value="g">g</option>
+            <option value="drops">drops</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date & Time</label>
+        <input type="datetime-local" class="form-control" id="doseDateTime">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes (optional)</label>
+        <textarea class="form-textarea" id="doseNotes" placeholder="Any observations…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="cancelDoseBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveDoseBtn">Save Dose</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/dosing.js"></script>
+</body>
+</html>
