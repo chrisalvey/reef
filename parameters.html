@@ -7,21 +7,22 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪸</text></svg>">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
 
 <nav class="nav">
   <div class="nav-inner">
-    <a href="index.html" class="nav-logo">🪸 <span>Reef Tracker</span></a>
+    <a href="index.html" class="nav-logo"><i data-lucide="waves"></i><span style="color:var(--teal-light)">Reef</span>&nbsp;<span>Tracker</span></a>
     <div class="nav-links" id="navLinks">
-      <a href="index.html"       class="nav-link" data-page="dashboard">Dashboard</a>
-      <a href="parameters.html"  class="nav-link" data-page="parameters">Parameters</a>
-      <a href="journal.html"     class="nav-link" data-page="journal">Journal</a>
-      <a href="livestock.html"   class="nav-link" data-page="livestock">Livestock</a>
-      <a href="schedule.html"    class="nav-link" data-page="schedule">Schedule</a>
-      <a href="equipment.html"   class="nav-link" data-page="equipment">Equipment</a>
-      <a href="dosing.html"      class="nav-link" data-page="dosing">Dosing</a>
-      <a href="calculators.html" class="nav-link" data-page="calculators">Calculators</a>
+      <a href="index.html"       class="nav-link" data-page="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a href="parameters.html"  class="nav-link" data-page="parameters"><i data-lucide="flask-conical"></i> Parameters</a>
+      <a href="journal.html"     class="nav-link" data-page="journal"><i data-lucide="notebook-pen"></i> Journal</a>
+      <a href="livestock.html"   class="nav-link" data-page="livestock"><i data-lucide="fish"></i> Livestock</a>
+      <a href="schedule.html"    class="nav-link" data-page="schedule"><i data-lucide="calendar-check"></i> Schedule</a>
+      <a href="equipment.html"   class="nav-link" data-page="equipment"><i data-lucide="plug-zap"></i> Equipment</a>
+      <a href="dosing.html"      class="nav-link" data-page="dosing"><i data-lucide="droplets"></i> Dosing</a>
+      <a href="calculators.html" class="nav-link" data-page="calculators"><i data-lucide="calculator"></i> Calculators</a>
     </div>
     <button class="nav-menu-btn" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
   </div>
@@ -173,5 +174,6 @@
 </div>
 
 <script type="module" src="js/parameters.js"></script>
+<script>lucide.createIcons();</script>
 </body>
 </html>

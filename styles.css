@@ -303,11 +303,21 @@ h1, h2, h3, h4, h5 {
 
 /* ── Status Dot ───────────────────────────────────────────── */
 
-.status-dot {
+/* Explicit resets prevent .alert banner styles from bleeding in when
+   an element carries both .status-dot and .alert classes. */
+.status-dot,
+.status-dot.ok,
+.status-dot.warn,
+.status-dot.alert,
+.status-dot.unknown {
+  display: inline-block;
   width: 10px;
   height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background-clip: border-box;
 }
 .status-dot.ok      { background: var(--green);  box-shadow: 0 0 6px var(--green); }
 .status-dot.warn    { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
@@ -715,4 +725,26 @@ tbody td {
   cursor: pointer;
   margin-left: auto;
   font-size: 1rem;
+}
+
+/* ── Lucide icon sizing in nav ────────────────────────────── */
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+}
+
+.nav-link svg {
+  width: 14px;
+  height: 14px;
+  margin-right: 5px;
+  flex-shrink: 0;
+}
+
+.nav-logo svg {
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
+  flex-shrink: 0;
+  vertical-align: middle;
 }
