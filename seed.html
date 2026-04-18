@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seed Data | Reef Tracker</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
 <nav class="nav">
   <div class="nav-inner">
-    <a href="index.html" class="nav-logo">🪸 <span>Reef Tracker</span></a>
+    <a href="index.html" class="nav-logo"><i data-lucide="waves"></i><span style="color:var(--teal-light)">Reef</span>&nbsp;<span>Tracker</span></a>
   </div>
 </nav>
 
@@ -372,5 +373,6 @@ const preview = document.getElementById('preview');
 
 document.getElementById('seedBtn').addEventListener('click', seedAll);
 </script>
+<script>lucide.createIcons();</script>
 </body>
 </html>
