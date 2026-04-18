@@ -34,6 +34,7 @@ paramTabs.addEventListener('click', e => {
   if (!tab) return;
   activeKey = tab.dataset.key;
   document.querySelectorAll('#paramTabs .tab').forEach(t => t.classList.toggle('active', t.dataset.key === activeKey));
+  buildLogSelect();
   loadParamData();
 });
 
