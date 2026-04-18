@@ -169,7 +169,7 @@ function renderTable(readings, p) {
         <td><span class="badge ${statusBadgeClass(status)}">${statusLabel(status)}</span></td>
         <td class="text-muted text-sm">${r.notes || '—'}</td>
         <td>
-          <button class="btn btn-ghost btn-sm" onclick="deleteReading('${r.id}')" title="Delete">✕</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteReading('${r.id}')" title="Delete">✕</button>
         </td>
       </tr>`;
   }).join('');
