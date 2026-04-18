@@ -135,7 +135,7 @@ function renderDoseLog() {
       <td>${d.amount} ${d.unit}</td>
       <td class="text-sm text-muted">${d.notes || '—'}</td>
       <td>
-        <button class="btn btn-ghost btn-sm" onclick="deleteLog('${d.id}')" title="Delete">✕</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteLog('${d.id}')" title="Delete">✕</button>
       </td>
     </tr>`).join('');
 }
