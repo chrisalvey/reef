@@ -34,8 +34,9 @@
       <h1>Water Parameters</h1>
       <p>Track, chart, and analyze your reef chemistry</p>
     </div>
-    <div style="display:flex;gap:.5rem;">
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
       <button class="btn btn-secondary btn-sm" id="manageParamsBtn">⚙ Manage Params</button>
+      <button class="btn btn-ai" id="aiAnalysisBtn">✦ AI Analysis</button>
       <button class="btn btn-primary" id="logReadingBtn">+ Log Reading</button>
     </div>
   </div>
@@ -169,6 +170,28 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-primary" id="saveManageModal">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Analysis Modal -->
+<div class="modal-overlay hidden" id="aiModal">
+  <div class="modal" style="max-width:700px;">
+    <div class="modal-header">
+      <h3>✦ AI Parameter Analysis</h3>
+      <button class="btn btn-ghost btn-sm" id="closeAiModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="aiLoadingState" style="display:flex;align-items:center;gap:.75rem;color:var(--text-secondary);padding:.5rem 0;">
+        <div class="spinner" style="width:18px;height:18px;border-width:2px;"></div>
+        <span>Analyzing your water parameters…</span>
+      </div>
+      <div id="aiErrorState" class="hidden" style="color:var(--coral);background:var(--coral-glow);border:1px solid rgba(255,107,107,.3);border-radius:var(--radius-md);padding:1rem;font-size:.9rem;"></div>
+      <div id="aiOutput" class="ai-analysis-output hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="rerunAiBtn" style="display:none;">↺ Re-run Analysis</button>
+      <button class="btn btn-primary" id="closeAiModal2">Close</button>
     </div>
   </div>
 </div>
