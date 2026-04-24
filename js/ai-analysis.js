@@ -40,6 +40,12 @@ async function fetchAllReadings() {
   return { params, grouped };
 }
 
+// ── Fetch livestock ───────────────────────────────────────────
+async function fetchLivestock() {
+  const snap = await getDocs(collection(db, 'reef_livestock'));
+  return snap.docs.map(d => d.data());
+}
+
 // ── Build prompt ──────────────────────────────────────────────
 function buildPrompt(params, grouped) {
   const hasData = params.some(p => (grouped[p.key] || []).length > 0);
