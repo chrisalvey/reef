@@ -279,6 +279,16 @@ h1, h2, h3, h4, h5 {
 }
 .btn-ghost:hover { color: var(--text-primary); background: var(--ocean-light); }
 
+.btn-ai {
+  background: linear-gradient(135deg, var(--teal-dark), var(--purple));
+  color: var(--white);
+  border-color: transparent;
+}
+.btn-ai:hover {
+  background: linear-gradient(135deg, var(--teal), #c4b5fd);
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.35);
+}
+
 .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
 .btn-lg { padding: 0.7rem 1.5rem; font-size: 1rem; }
 
@@ -467,6 +477,44 @@ tbody td {
   gap: var(--space-sm);
   padding: var(--space-md) var(--space-lg);
   border-top: 1px solid var(--ocean-border);
+}
+
+/* ── AI Analysis output ───────────────────────────────────── */
+
+.ai-analysis-output {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+.ai-analysis-output h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--teal-light);
+  margin: 1.25rem 0 0.4rem;
+}
+.ai-analysis-output h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 1rem 0 0.3rem;
+}
+.ai-analysis-output p { margin: 0.3rem 0; }
+.ai-analysis-output ul {
+  margin: 0.3rem 0 0.3rem 1.25rem;
+  padding: 0;
+}
+.ai-analysis-output li { margin: 0.2rem 0; }
+.ai-analysis-output hr {
+  border: none;
+  border-top: 1px solid var(--ocean-border);
+  margin: 1rem 0;
+}
+.ai-analysis-output strong { color: var(--text-primary); font-weight: 600; }
+.ai-analysis-output code {
+  background: var(--ocean-light);
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.35em;
+  font-size: 0.85em;
 }
 
 /* ── Alerts ───────────────────────────────────────────────── */

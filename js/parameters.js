@@ -8,6 +8,7 @@ import {
   DEFAULT_PARAMETERS, getParamStatus, statusBadgeClass, statusLabel,
   formatDateTime, nowDatetimeLocal, showModal, hideModal, showToast, downloadCsv
 } from './common.js';
+import { runAnalysis, markdownToHtml } from './ai-analysis.js';
 
 setActiveNav('parameters');
 
@@ -273,6 +274,50 @@ window.removeCustomParam = function(i) {
   saveParamSettings(settings);
   buildManageModal();
 };
+
+// ── AI Analysis ───────────────────────────────────────────
+function resetAiModal() {
+  document.getElementById('aiLoadingState').style.display = 'flex';
+  document.getElementById('aiErrorState').classList.add('hidden');
+  document.getElementById('aiOutput').classList.add('hidden');
+  document.getElementById('aiOutput').innerHTML = '';
+  document.getElementById('rerunAiBtn').style.display = 'none';
+}
+
+function startAnalysis() {
+  resetAiModal();
+  let accumulated = '';
+  runAnalysis({
+    onChunk(text) {
+      accumulated += text;
+      const out = document.getElementById('aiOutput');
+      out.innerHTML = markdownToHtml(accumulated);
+      if (out.classList.contains('hidden')) {
+        document.getElementById('aiLoadingState').style.display = 'none';
+        out.classList.remove('hidden');
+      }
+    },
+    onDone() {
+      document.getElementById('aiLoadingState').style.display = 'none';
+      document.getElementById('rerunAiBtn').style.display = '';
+    },
+    onError(msg) {
+      document.getElementById('aiLoadingState').style.display = 'none';
+      const err = document.getElementById('aiErrorState');
+      err.textContent = msg;
+      err.classList.remove('hidden');
+      document.getElementById('rerunAiBtn').style.display = '';
+    },
+  });
+}
+
+document.getElementById('aiAnalysisBtn').addEventListener('click', () => {
+  showModal('aiModal');
+  startAnalysis();
+});
+document.getElementById('closeAiModal').addEventListener('click',  () => hideModal('aiModal'));
+document.getElementById('closeAiModal2').addEventListener('click', () => hideModal('aiModal'));
+document.getElementById('rerunAiBtn').addEventListener('click', startAnalysis);
 
 // ── History range change ──────────────────────────────────
 historyRange.addEventListener('change', loadParamData);
