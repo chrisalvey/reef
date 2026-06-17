@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://chrisalvey.github.io"],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+    "responseHeader": ["Content-Type", "Authorization", "x-goog-*"],
+    "maxAgeSeconds": 3600
+  }
+]
