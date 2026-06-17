@@ -757,10 +757,16 @@ tbody td {
     flex-direction: column;
     padding: var(--space-sm);
     gap: 2px;
+    max-height: calc(100vh - var(--nav-height));
+    overflow-y: auto;
+    z-index: 999;
   }
   .nav-links.open { display: flex; }
   .nav-link { justify-content: center; }
   .nav-menu-btn { display: flex; }
+
+  #tankInfoBar,
+  #chamberCard { display: none !important; }
 }
 
 .nav-menu-btn {
