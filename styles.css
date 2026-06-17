@@ -746,7 +746,7 @@ tbody td {
 
 /* ── Responsive nav ───────────────────────────────────────── */
 
-@media (max-width: 600px) {
+@media (max-width: 900px) {
   .nav-links {
     display: none;
     position: fixed;
@@ -764,7 +764,9 @@ tbody td {
   .nav-links.open { display: flex; }
   .nav-link { justify-content: center; }
   .nav-menu-btn { display: flex; }
+}
 
+@media (max-width: 900px) {
   #tankInfoBar,
   #chamberCard { display: none !important; }
 }
