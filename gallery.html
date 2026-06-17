@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gallery | Reef Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪸</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo"><i data-lucide="waves"></i><span style="color:var(--teal-light)">Reef</span>&nbsp;<span>Tracker</span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html"       class="nav-link" data-page="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a href="parameters.html"  class="nav-link" data-page="parameters"><i data-lucide="flask-conical"></i> Parameters</a>
+      <a href="journal.html"     class="nav-link" data-page="journal"><i data-lucide="notebook-pen"></i> Journal</a>
+      <a href="livestock.html"   class="nav-link" data-page="livestock"><i data-lucide="fish"></i> Livestock</a>
+      <a href="schedule.html"    class="nav-link" data-page="schedule"><i data-lucide="calendar-check"></i> Schedule</a>
+      <a href="equipment.html"   class="nav-link" data-page="equipment"><i data-lucide="plug-zap"></i> Equipment</a>
+      <a href="dosing.html"      class="nav-link" data-page="dosing"><i data-lucide="droplets"></i> Dosing</a>
+      <a href="calculators.html" class="nav-link" data-page="calculators"><i data-lucide="calculator"></i> Calculators</a>
+      <a href="gallery.html"     class="nav-link" data-page="gallery"><i data-lucide="camera"></i> Gallery</a>
+    </div>
+    <button class="nav-menu-btn" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-header-row">
+    <div class="page-header" style="margin-bottom:0">
+      <h1>Tank Gallery</h1>
+      <p>Photos of your reef over time</p>
+    </div>
+    <button class="btn btn-primary" id="uploadBtn">+ Upload Photo</button>
+  </div>
+
+  <!-- Sort controls -->
+  <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;">
+    <span class="text-sm text-muted">Sort:</span>
+    <button class="sort-btn active" id="sortNewest">Newest First</button>
+    <button class="sort-btn" id="sortOldest">Oldest First</button>
+    <span class="text-sm text-muted" id="photoCount" style="margin-left:auto;"></span>
+  </div>
+
+  <!-- Gallery grid -->
+  <div id="photoGrid" class="photo-grid">
+    <div class="loading" style="grid-column:1/-1"><div class="spinner"></div> Loading…</div>
+  </div>
+
+  <div id="noPhotos" class="hidden">
+    <div class="empty-state">
+      <div class="empty-icon">📷</div>
+      <h3>No photos yet</h3>
+      <p>Upload your first tank photo to start the gallery.</p>
+    </div>
+  </div>
+</main>
+
+<!-- Upload Modal -->
+<div class="modal-overlay hidden" id="uploadModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Upload Tank Photo</h3>
+      <button class="btn btn-ghost btn-sm" id="closeUploadModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Drop zone -->
+      <div class="upload-zone" id="uploadZone">
+        <div id="uploadZonePrompt">
+          <div style="font-size:2rem;margin-bottom:.5rem;">📷</div>
+          <div style="font-weight:600;margin-bottom:.25rem;">Click or drag &amp; drop to select a photo</div>
+          <div class="text-sm text-muted">JPG, PNG, WEBP — max 10 MB</div>
+        </div>
+        <img id="uploadPreview" class="upload-preview hidden" alt="Preview">
+      </div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none">
+
+      <!-- Progress bar (hidden until uploading) -->
+      <div id="progressWrap" class="progress-bar-wrap hidden">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <div class="form-group" style="margin-top:1rem;">
+        <label class="form-label">Caption (optional)</label>
+        <input type="text" class="form-control" id="photoCaption" placeholder="What's happening in this photo?">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date Taken</label>
+        <input type="datetime-local" class="form-control" id="photoDate">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="cancelUploadBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveUploadBtn" disabled>Upload Photo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox-overlay hidden" id="lightbox">
+  <div class="lightbox-inner">
+    <img id="lightboxImg" class="lightbox-img" alt="">
+    <div style="padding:1rem 1.25rem;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;">
+        <div>
+          <div id="lightboxCaption" style="font-size:1rem;font-weight:600;margin-bottom:.35rem;"></div>
+          <div id="lightboxDate" class="text-sm text-muted"></div>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-shrink:0;">
+          <button class="btn btn-danger btn-sm" id="deletePhotoBtn">Delete</button>
+          <button class="btn btn-secondary btn-sm" id="closeLightboxBtn">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/gallery.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>
