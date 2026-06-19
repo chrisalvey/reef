@@ -59,7 +59,8 @@
   </div>
 
   <div class="tabs mb-lg" id="calcTabs">
-    <button class="tab active" data-calc="alkalinity">Alkalinity</button>
+    <button class="tab active" data-calc="saltmix">Salt Mix</button>
+    <button class="tab" data-calc="alkalinity">Alkalinity</button>
     <button class="tab" data-calc="calcium">Calcium</button>
     <button class="tab" data-calc="magnesium">Magnesium</button>
     <button class="tab" data-calc="salinity">Salinity / SG</button>
@@ -70,8 +71,27 @@
 
   <div style="max-width:560px;">
 
+    <!-- Salt Mix Calculator -->
+    <div class="calc-panel active card" id="calc-saltmix">
+      <div class="card-title" style="margin-bottom:.25rem;">Salt Mix Calculator</div>
+      <p class="text-sm text-muted mb-md">How many grams of Instant Ocean Original to mix for 1.026 SG (35 ppt) at 77°F.</p>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Volume of Water (gallons)</label>
+          <select class="form-select" id="salt-gallons"></select>
+        </div>
+        <div class="calc-result" id="salt-result">
+          <div class="result-value" id="salt-result-val"></div>
+          <div class="result-label">grams of Instant Ocean Original</div>
+        </div>
+        <div class="alert alert-info text-sm">
+          💡 Mix salt fully before checking SG. Verify with a calibrated refractometer — temperature affects readings.
+        </div>
+      </div>
+    </div>
+
     <!-- Alkalinity Dose Calculator -->
-    <div class="calc-panel active card" id="calc-alkalinity">
+    <div class="calc-panel card" id="calc-alkalinity">
       <div class="card-title" style="margin-bottom:.25rem;">Alkalinity Dose Calculator</div>
       <p class="text-sm text-muted mb-md">How much to dose to raise alkalinity using sodium bicarbonate (baking soda) or sodium carbonate (soda ash).</p>
       <div style="display:flex;flex-direction:column;gap:1rem;">
@@ -501,6 +521,27 @@
       after.toFixed(2),
       `After ${Math.round(pct * 100)}% water change — reduced by ${pctChange}%`
     );
+  }
+
+  // ── Salt Mix Calculator ───────────────────────────────────
+  // 35 g/L × 3.785 L/gal = 132.475 g/gal for Instant Ocean Original at 1.026 SG
+  (function buildSaltSelect() {
+    const sel = document.getElementById('salt-gallons');
+    for (let g = 0.5; g <= 50; g += 0.5) {
+      const opt = document.createElement('option');
+      opt.value = g;
+      const label = g % 1 === 0 ? g : g.toFixed(1);
+      opt.textContent = `${label} gallon${g === 1 ? '' : 's'}`;
+      sel.appendChild(opt);
+    }
+    sel.addEventListener('change', calcSaltMix);
+    calcSaltMix();
+  })();
+
+  function calcSaltMix() {
+    const gallons = parseFloat(document.getElementById('salt-gallons').value);
+    const grams = (gallons * 3.785 * 35).toFixed(1);
+    document.getElementById('salt-result-val').textContent = grams + 'g';
   }
 
   // ── Helper ────────────────────────────────────────────────
