@@ -148,6 +148,22 @@ export function downloadCsv(rows, filename) {
   URL.revokeObjectURL(url);
 }
 
+// ── JSON export ───────────────────────────────────────────
+export function downloadJson(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: filename });
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Firestore Timestamp (or Date/string) -> ISO string, for serializable exports
+export function tsToIso(ts) {
+  if (!ts) return null;
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toISOString();
+}
+
 // Inject keyframe animation once
 const style = document.createElement('style');
 style.textContent = '@keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}';

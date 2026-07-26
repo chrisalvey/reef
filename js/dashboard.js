@@ -4,8 +4,9 @@ import {
   doc, getDoc, setDoc
 } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
 import {
-  setActiveNav, enabledParams, getParamStatus, statusBadgeClass, statusLabel,
-  formatDateTime, relativeTime, daysUntil, JOURNAL_ICONS, showModal, hideModal, showToast
+  setActiveNav, enabledParams, loadParamSettings, getParamStatus, statusBadgeClass, statusLabel,
+  formatDateTime, relativeTime, daysUntil, JOURNAL_ICONS, showModal, hideModal, showToast,
+  downloadJson, tsToIso
 } from './common.js';
 
 setActiveNav('dashboard');
@@ -17,6 +18,7 @@ const alertsSection = document.getElementById('alertsSection');
 const alertsList    = document.getElementById('alertsList');
 
 document.getElementById('refreshBtn').addEventListener('click', loadAll);
+document.getElementById('exportJsonBtn').addEventListener('click', exportJson);
 
 async function loadAll() {
   await Promise.all([loadTankProfile(), loadParameters(), loadTasks(), loadJournal(), loadStats()]);
@@ -264,6 +266,61 @@ async function loadStats() {
   document.getElementById('statCorals').textContent    = counts.coral;
   document.getElementById('statInverts').textContent   = counts.invert;
   document.getElementById('statEquipment').textContent = equip.size;
+}
+
+// ── JSON export (parameter + journal history, for AI use) ─
+async function exportJson() {
+  const btn = document.getElementById('exportJsonBtn');
+  btn.disabled = true;
+  btn.textContent = 'Exporting…';
+  try {
+    const [paramSnap, journalSnap] = await Promise.all([
+      getDocs(query(collection(db, 'reef_parameters'), orderBy('timestamp', 'asc'))),
+      getDocs(query(collection(db, 'reef_journal'),    orderBy('timestamp', 'asc'))),
+    ]);
+
+    const parameterReadings = paramSnap.docs.map(d => {
+      const r = d.data();
+      return {
+        paramKey:  r.paramKey,
+        paramName: r.paramName,
+        value:     r.value,
+        unit:      r.unit,
+        notes:     r.notes || '',
+        timestamp: tsToIso(r.timestamp),
+      };
+    });
+
+    const journalEntries = journalSnap.docs.map(d => {
+      const e = d.data();
+      return {
+        type:      e.type,
+        title:     e.title,
+        notes:     e.notes || '',
+        timestamp: tsToIso(e.timestamp),
+      };
+    });
+
+    const parameterDefinitions = loadParamSettings().map(p => ({
+      key: p.key, name: p.name, unit: p.unit, min: p.min, max: p.max, enabled: p.enabled !== false,
+    }));
+
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      parameterDefinitions,
+      parameterReadings,
+      journalEntries,
+    };
+
+    downloadJson(exportData, `reef_export_${new Date().toISOString().slice(0, 10)}.json`);
+    showToast('Export ready!');
+  } catch (err) {
+    console.error(err);
+    showToast('Export failed. See console for details.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '↓ Export JSON';
+  }
 }
 
 loadAll();
