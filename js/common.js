@@ -6,7 +6,7 @@ export const DEFAULT_PARAMETERS = [
   { key: 'alkalinity',  name: 'Alkalinity',   unit: 'dKH',  min: 7,    max: 12,   decimals: 1, enabled: true  },
   { key: 'calcium',     name: 'Calcium',       unit: 'ppm',  min: 380,  max: 450,  decimals: 0, enabled: true  },
   { key: 'magnesium',   name: 'Magnesium',     unit: 'ppm',  min: 1250, max: 1350, decimals: 0, enabled: true  },
-  { key: 'nitrate',     name: 'Nitrate',       unit: 'ppm',  min: 0,    max: 10,   decimals: 2, enabled: true  },
+  { key: 'nitrate',     name: 'Nitrate',       unit: 'ppm',  min: 2,    max: 10,   decimals: 2, enabled: true  },
   { key: 'phosphate',   name: 'Phosphate',     unit: 'ppm',  min: 0.05, max: 0.15, decimals: 3, enabled: true  },
   { key: 'ph',          name: 'pH',            unit: '',     min: 7.8,  max: 8.5,  decimals: 2, enabled: true  },
   { key: 'salinity',    name: 'Salinity',      unit: 'SG',   min: 1.024,max: 1.026,decimals: 4, enabled: true  },
