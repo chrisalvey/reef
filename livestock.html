@@ -71,6 +71,12 @@
         <option value="fair">Fair</option>
         <option value="poor">Poor</option>
       </select>
+      <select class="form-select" id="statusFilter" style="width:auto;">
+        <option value="alive">Alive (In Tank)</option>
+        <option value="">All Statuses</option>
+        <option value="removed">Removed / Rehomed</option>
+        <option value="died">Died</option>
+      </select>
       <button class="btn btn-primary" id="addLivestockBtn">+ Add Livestock</button>
     </div>
   </div>
@@ -140,13 +146,48 @@
           </select>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Location in Tank (optional)</label>
-        <input type="text" class="form-control" id="lcLocation" placeholder="e.g. Top right rock, sandbed">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Source (optional)</label>
+          <input type="text" class="form-control" id="lcSource" placeholder="e.g. LFS name, online vendor">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cost (optional)</label>
+          <input type="number" step="0.01" min="0" class="form-control" id="lcCost" placeholder="e.g. 24.99">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Location in Tank (optional)</label>
+          <input type="text" class="form-control" id="lcLocation" placeholder="e.g. Top right rock, sandbed">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Light Tier</label>
+          <select class="form-select" id="lcLightTier">
+            <option value="na">N/A</option>
+            <option value="high">High Light</option>
+            <option value="medium">Medium Light</option>
+            <option value="low">Low Light</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="lcStatus">
+            <option value="alive">Alive (In Tank)</option>
+            <option value="removed">Removed / Rehomed</option>
+            <option value="died">Died</option>
+          </select>
+        </div>
+        <div class="form-group hidden" id="fieldRemovedDate">
+          <label class="form-label">Date Removed / Died</label>
+          <input type="date" class="form-control" id="lcRemovedDate">
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Notes</label>
-        <textarea class="form-textarea" id="lcNotes" placeholder="Source, price, behavior, diet preferences…"></textarea>
+        <textarea class="form-textarea" id="lcNotes" placeholder="Behavior, diet preferences…"></textarea>
       </div>
     </div>
     <div class="modal-footer">

@@ -5,19 +5,22 @@ import {
 } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
 import {
   setActiveNav, nowDatetimeLocal, formatDateTime, JOURNAL_ICONS,
+  MAINTENANCE_TYPE_LABELS, FOOD_TYPE_LABELS,
   showModal, hideModal, showToast
 } from './common.js';
 
 setActiveNav('journal');
 
-let allEntries = [];
-let editingId  = null;
+let allEntries   = [];
+let allLivestock = [];
+let editingId    = null;
 
 const entriesList  = document.getElementById('entriesList');
 const noResults    = document.getElementById('noResults');
 const searchInput  = document.getElementById('searchInput');
 const typeFilter   = document.getElementById('typeFilter');
 const dateFilter   = document.getElementById('dateFilter');
+const entryType    = document.getElementById('entryType');
 
 // ── Load entries ──────────────────────────────────────────
 async function loadEntries() {
@@ -26,6 +29,24 @@ async function loadEntries() {
   allEntries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderEntries();
 }
+
+// ── Load livestock for linking ─────────────────────────────
+async function loadLivestockOptions() {
+  const snap = await getDocs(query(collection(db, 'reef_livestock'), orderBy('name')));
+  allLivestock = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const sel = document.getElementById('entryLivestockId');
+  sel.innerHTML = '<option value="">— None —</option>' +
+    allLivestock.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
+}
+
+// ── Show/hide type-specific fields ─────────────────────────
+function updateTypeFields() {
+  const t = entryType.value;
+  document.getElementById('fieldWaterVolume').classList.toggle('hidden', t !== 'water_change');
+  document.getElementById('fieldMaintenanceType').classList.toggle('hidden', t !== 'maintenance');
+  document.getElementById('fieldFeeding').classList.toggle('hidden', t !== 'feeding');
+}
+entryType.addEventListener('change', updateTypeFields);
 
 function renderEntries() {
   const search   = searchInput.value.toLowerCase();
@@ -50,6 +71,14 @@ function renderEntries() {
     const icon     = JOURNAL_ICONS[e.type] || '📝';
     const typeLabel = e.type?.replace(/_/g, ' ') ?? 'Note';
     const preview  = e.notes ? e.notes.slice(0, 120) + (e.notes.length > 120 ? '…' : '') : '';
+    const badges   = [`<span class="badge badge-neutral" style="text-transform:capitalize;">${typeLabel}</span>`];
+    if (e.type === 'water_change' && e.volumeGallons) badges.push(`<span class="badge badge-neutral">${e.volumeGallons} gal</span>`);
+    if (e.type === 'maintenance' && e.maintenanceType) badges.push(`<span class="badge badge-neutral">${MAINTENANCE_TYPE_LABELS[e.maintenanceType] || e.maintenanceType}</span>`);
+    if (e.type === 'feeding') {
+      const foodLabel = FOOD_TYPE_LABELS[e.foodType] || e.foodType;
+      badges.push(`<span class="badge badge-neutral">${[foodLabel, e.foodAmount].filter(Boolean).join(' · ')}</span>`);
+    }
+    if (e.livestockName) badges.push(`<span class="badge badge-neutral">🔗 ${e.livestockName}</span>`);
     return `
       <div class="card" style="cursor:pointer;" onclick="editEntry('${e.id}')">
         <div style="display:flex;gap:1rem;align-items:flex-start;">
@@ -57,7 +86,7 @@ function renderEntries() {
           <div style="flex:1;min-width:0;">
             <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:.35rem;">
               <div style="font-weight:600;font-size:1rem;">${e.title || typeLabel}</div>
-              <span class="badge badge-neutral" style="text-transform:capitalize;">${typeLabel}</span>
+              ${badges.join('')}
             </div>
             <div class="text-sm text-muted mb-md">${formatDateTime(e.timestamp)}</div>
             ${preview ? `<div class="text-sm" style="color:var(--text-secondary);white-space:pre-wrap;">${preview}</div>` : ''}
@@ -77,8 +106,14 @@ window.editEntry = function(id) {
   const d = e.timestamp?.toDate ? e.timestamp.toDate() : new Date(e.timestamp);
   d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
   document.getElementById('entryDate').value  = d.toISOString().slice(0, 16);
+  document.getElementById('entryVolumeGallons').value  = e.volumeGallons ?? '';
+  document.getElementById('entryMaintenanceType').value = e.maintenanceType || 'filter_floss';
+  document.getElementById('entryFoodType').value        = e.foodType || 'mysis';
+  document.getElementById('entryFoodAmount').value      = e.foodAmount || '';
+  document.getElementById('entryLivestockId').value     = e.livestockId || '';
   document.getElementById('entryNotes').value = e.notes || '';
   document.getElementById('deleteEntryBtn').classList.remove('hidden');
+  updateTypeFields();
   showModal('entryModal');
 };
 
@@ -94,8 +129,14 @@ document.getElementById('addEntryBtn').addEventListener('click', () => {
   document.getElementById('entryType').value  = 'observation';
   document.getElementById('entryTitle').value = '';
   document.getElementById('entryDate').value  = nowDatetimeLocal();
+  document.getElementById('entryVolumeGallons').value   = '';
+  document.getElementById('entryMaintenanceType').value = 'filter_floss';
+  document.getElementById('entryFoodType').value        = 'mysis';
+  document.getElementById('entryFoodAmount').value      = '';
+  document.getElementById('entryLivestockId').value     = '';
   document.getElementById('entryNotes').value = '';
   document.getElementById('deleteEntryBtn').classList.add('hidden');
+  updateTypeFields();
   showModal('entryModal');
 });
 
@@ -107,11 +148,20 @@ document.getElementById('saveEntryBtn').addEventListener('click', async () => {
   const notes = document.getElementById('entryNotes').value.trim();
   if (!dateStr) return showToast('Please set a date.', 'error');
 
+  const livestockId = document.getElementById('entryLivestockId').value;
+  const livestock    = livestockId ? allLivestock.find(l => l.id === livestockId) : null;
+
   const data = {
     type,
     title: title || type.replace(/_/g, ' '),
     notes,
     timestamp: Timestamp.fromDate(new Date(dateStr)),
+    volumeGallons:    type === 'water_change' ? (parseFloat(document.getElementById('entryVolumeGallons').value) || null) : null,
+    maintenanceType:  type === 'maintenance'  ? document.getElementById('entryMaintenanceType').value : null,
+    foodType:         type === 'feeding'      ? document.getElementById('entryFoodType').value : null,
+    foodAmount:       type === 'feeding'      ? document.getElementById('entryFoodAmount').value.trim() : null,
+    livestockId:      livestockId || null,
+    livestockName:    livestock?.name || null,
   };
 
   if (editingId) {
@@ -139,3 +189,4 @@ document.getElementById('closeEntryModal').addEventListener('click', () => hideM
 document.getElementById('cancelEntryBtn').addEventListener('click', () => hideModal('entryModal'));
 
 loadEntries();
+loadLivestockOptions();

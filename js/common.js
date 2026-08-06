@@ -115,9 +115,36 @@ export function enabledParams() {
 // ── Type labels ───────────────────────────────────────────
 export const LIVESTOCK_ICONS = { fish: '🐠', coral: '🪸', invert: '🦀', plant: '🌿' };
 export const EQUIP_ICONS     = { light: '💡', pump: '🌀', skimmer: '⚗️', heater: '🌡️', filter: '🔄', dosing_pump: '💧', controller: '📊', other: '⚙️' };
-export const JOURNAL_ICONS   = { water_change: '💧', observation: '👁️', addition: '➕', maintenance: '🔧', treatment: '💊', other: '📝' };
+export const JOURNAL_ICONS   = { water_change: '💧', observation: '👁️', addition: '➕', maintenance: '🔧', treatment: '💊', feeding: '🍤', other: '📝' };
 
 export const HEALTH_COLORS   = { excellent: 'var(--green)', good: 'var(--teal)', fair: 'var(--yellow)', poor: 'var(--coral)' };
+
+export const MAINTENANCE_TYPE_LABELS = {
+  filter_floss:     'Filter Floss',
+  carbon:            'Carbon',
+  gfo:                'GFO',
+  pump_cleaning:     'Pump Cleaning',
+  impeller_cleaning: 'Impeller Cleaning',
+  skimmer_cleaning:  'Skimmer Cleaning',
+  ato_sensor:        'ATO Sensor Cleaning',
+  glass_cleaning:    'Glass Cleaning',
+  other:              'Other',
+};
+
+export const FOOD_TYPE_LABELS = {
+  mysis:          'Mysis Shrimp',
+  brine_shrimp:   'Brine Shrimp',
+  pellets:        'Pellets',
+  flakes:         'Flakes',
+  nori:           'Nori',
+  coral_food:     'Coral Food',
+  phytoplankton:  'Phytoplankton',
+  other:          'Other',
+};
+
+export const LIVESTOCK_STATUS_LABELS = { alive: 'Alive (In Tank)', removed: 'Removed / Rehomed', died: 'Died' };
+
+export const LIGHT_TIER_LABELS = { high: 'High Light', medium: 'Medium Light', low: 'Low Light', na: 'N/A' };
 
 // ── UI helpers ────────────────────────────────────────────
 export function showModal(id)  { document.getElementById(id).classList.remove('hidden'); }

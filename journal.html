@@ -50,6 +50,7 @@
       <option value="addition">Addition</option>
       <option value="maintenance">Maintenance</option>
       <option value="treatment">Treatment</option>
+      <option value="feeding">Feeding</option>
       <option value="other">Other</option>
     </select>
     <input type="date" class="form-control" id="dateFilter" style="width:auto;" title="Filter by date">
@@ -85,6 +86,7 @@
           <option value="addition">Addition (livestock/equipment)</option>
           <option value="maintenance">Maintenance</option>
           <option value="treatment">Treatment</option>
+          <option value="feeding">Feeding</option>
           <option value="other">Other</option>
         </select>
       </div>
@@ -96,6 +98,58 @@
         <label class="form-label">Date & Time</label>
         <input type="datetime-local" class="form-control" id="entryDate">
       </div>
+
+      <!-- Water change: structured volume -->
+      <div class="form-group hidden" id="fieldWaterVolume">
+        <label class="form-label">Volume (gallons)</label>
+        <input type="number" step="0.1" min="0" class="form-control" id="entryVolumeGallons" placeholder="e.g. 3">
+      </div>
+
+      <!-- Maintenance: structured type -->
+      <div class="form-group hidden" id="fieldMaintenanceType">
+        <label class="form-label">Maintenance Type</label>
+        <select class="form-select" id="entryMaintenanceType">
+          <option value="filter_floss">Filter Floss</option>
+          <option value="carbon">Carbon</option>
+          <option value="gfo">GFO</option>
+          <option value="pump_cleaning">Pump Cleaning</option>
+          <option value="impeller_cleaning">Impeller Cleaning</option>
+          <option value="skimmer_cleaning">Skimmer Cleaning</option>
+          <option value="ato_sensor">ATO Sensor Cleaning</option>
+          <option value="glass_cleaning">Glass Cleaning</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <!-- Feeding: structured food type + amount -->
+      <div class="form-row hidden" id="fieldFeeding">
+        <div class="form-group">
+          <label class="form-label">Food Type</label>
+          <select class="form-select" id="entryFoodType">
+            <option value="mysis">Mysis Shrimp</option>
+            <option value="brine_shrimp">Brine Shrimp</option>
+            <option value="pellets">Pellets</option>
+            <option value="flakes">Flakes</option>
+            <option value="nori">Nori</option>
+            <option value="coral_food">Coral Food</option>
+            <option value="phytoplankton">Phytoplankton</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Amount</label>
+          <input type="text" class="form-control" id="entryFoodAmount" placeholder="e.g. 1/2 cube, pinch">
+        </div>
+      </div>
+
+      <!-- Optional link to a specific livestock item -->
+      <div class="form-group">
+        <label class="form-label">Link to Livestock (optional)</label>
+        <select class="form-select" id="entryLivestockId">
+          <option value="">— None —</option>
+        </select>
+      </div>
+
       <div class="form-group">
         <label class="form-label">Notes</label>
         <textarea class="form-textarea" id="entryNotes" style="min-height:120px;" placeholder="Describe what happened, what you noticed, measurements, quantities…"></textarea>

@@ -259,8 +259,9 @@ async function loadStats() {
   const equip        = await getDocs(collection(db, 'reef_equipment'));
   const counts       = { fish: 0, coral: 0, invert: 0 };
   allLivestock.forEach(d => {
-    const t = d.data().type;
-    if (counts[t] !== undefined) counts[t]++;
+    const l = d.data();
+    if ((l.status || 'alive') !== 'alive') return;
+    if (counts[l.type] !== undefined) counts[l.type]++;
   });
   document.getElementById('statFish').textContent      = counts.fish;
   document.getElementById('statCorals').textContent    = counts.coral;
@@ -274,9 +275,12 @@ async function exportJson() {
   btn.disabled = true;
   btn.textContent = 'Exporting…';
   try {
-    const [paramSnap, journalSnap] = await Promise.all([
+    const [paramSnap, journalSnap, doseLogSnap, supplementSnap, livestockSnap] = await Promise.all([
       getDocs(query(collection(db, 'reef_parameters'), orderBy('timestamp', 'asc'))),
       getDocs(query(collection(db, 'reef_journal'),    orderBy('timestamp', 'asc'))),
+      getDocs(query(collection(db, 'reef_dose_log'),   orderBy('timestamp', 'asc'))),
+      getDocs(collection(db, 'reef_supplements')),
+      getDocs(collection(db, 'reef_livestock')),
     ]);
 
     const parameterReadings = paramSnap.docs.map(d => {
@@ -294,10 +298,47 @@ async function exportJson() {
     const journalEntries = journalSnap.docs.map(d => {
       const e = d.data();
       return {
-        type:      e.type,
-        title:     e.title,
+        type:            e.type,
+        title:           e.title,
+        volumeGallons:   e.volumeGallons ?? null,
+        maintenanceType: e.maintenanceType ?? null,
+        foodType:        e.foodType ?? null,
+        foodAmount:      e.foodAmount ?? null,
+        livestockId:     e.livestockId ?? null,
+        livestockName:   e.livestockName ?? null,
         notes:     e.notes || '',
         timestamp: tsToIso(e.timestamp),
+      };
+    });
+
+    const doseEvents = doseLogSnap.docs.map(d => {
+      const e = d.data();
+      return {
+        supplementId:   e.supplementId,
+        supplementName: e.supplementName,
+        amount:    e.amount,
+        unit:      e.unit,
+        notes:     e.notes || '',
+        timestamp: tsToIso(e.timestamp),
+      };
+    });
+
+    const supplementDefinitions = supplementSnap.docs.map(d => {
+      const s = d.data();
+      return {
+        id: d.id, name: s.name, type: s.type, amount: s.amount, unit: s.unit,
+        frequency: s.frequency, active: s.active !== false, notes: s.notes || '',
+      };
+    });
+
+    const livestock = livestockSnap.docs.map(d => {
+      const l = d.data();
+      return {
+        id: d.id, name: l.name, type: l.type, species: l.species || '',
+        dateAdded: l.dateAdded || null, source: l.source || '', cost: l.cost ?? null,
+        location: l.location || '', lightTier: l.lightTier || 'na',
+        health: l.health || null, status: l.status || 'alive', removedDate: l.removedDate || null,
+        notes: l.notes || '',
       };
     });
 
@@ -310,6 +351,9 @@ async function exportJson() {
       parameterDefinitions,
       parameterReadings,
       journalEntries,
+      supplementDefinitions,
+      doseEvents,
+      livestock,
     };
 
     downloadJson(exportData, `reef_export_${new Date().toISOString().slice(0, 10)}.json`);

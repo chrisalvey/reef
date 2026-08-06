@@ -4,6 +4,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
 import {
   setActiveNav, todayDate, formatDate, LIVESTOCK_ICONS, HEALTH_COLORS,
+  LIVESTOCK_STATUS_LABELS, LIGHT_TIER_LABELS,
   showModal, hideModal, showToast
 } from './common.js';
 
@@ -23,7 +24,10 @@ async function loadLivestock() {
 
 function updateCounts() {
   const counts = { fish: 0, coral: 0, invert: 0, plant: 0 };
-  allLivestock.forEach(l => counts[l.type] = (counts[l.type] || 0) + 1);
+  allLivestock.forEach(l => {
+    if ((l.status || 'alive') !== 'alive') return;
+    counts[l.type] = (counts[l.type] || 0) + 1;
+  });
   document.getElementById('countFish').textContent   = counts.fish;
   document.getElementById('countCorals').textContent = counts.coral;
   document.getElementById('countInverts').textContent= counts.invert;
@@ -33,10 +37,12 @@ function updateCounts() {
 function renderLivestock() {
   const typeFilter   = document.getElementById('typeFilter').value;
   const healthFilter = document.getElementById('healthFilter').value;
+  const statusFilter = document.getElementById('statusFilter').value;
 
   let filtered = allLivestock.filter(l =>
     (!typeFilter   || l.type   === typeFilter) &&
-    (!healthFilter || l.health === healthFilter)
+    (!healthFilter || l.health === healthFilter) &&
+    (!statusFilter || (l.status || 'alive') === statusFilter)
   );
 
   const container = document.getElementById('livestockContainer');
@@ -73,20 +79,31 @@ function livestockCard(l) {
   const icon         = LIVESTOCK_ICONS[l.type] || '🐠';
   const healthColor  = HEALTH_COLORS[l.health] || 'var(--text-muted)';
   const healthLabel  = l.health ? l.health.charAt(0).toUpperCase() + l.health.slice(1) : 'Unknown';
+  const status       = l.status || 'alive';
   const daysSince    = l.dateAdded ? Math.floor((Date.now() - new Date(l.dateAdded)) / 86400000) : null;
   const sinceLabel   = daysSince !== null ? `${daysSince}d in tank` : '';
   return `
-    <div class="livestock-card" onclick="openEdit('${l.id}')">
+    <div class="livestock-card" onclick="openEdit('${l.id}')" style="${status !== 'alive' ? 'opacity:.6;' : ''}">
       <div class="lc-icon">${icon}</div>
       <div class="lc-name">${l.name}</div>
       <div class="lc-species">${l.species || '—'}</div>
       <div class="lc-meta">
-        <span style="font-size:.8rem;font-weight:600;color:${healthColor};">● ${healthLabel}</span>
+        ${status === 'alive'
+          ? `<span style="font-size:.8rem;font-weight:600;color:${healthColor};">● ${healthLabel}</span>`
+          : `<span style="font-size:.8rem;font-weight:600;color:var(--coral);">${LIVESTOCK_STATUS_LABELS[status]}</span>`}
         <span class="text-xs text-muted">${sinceLabel}</span>
       </div>
       ${l.location ? `<div class="text-xs text-muted mt-sm">📍 ${l.location}</div>` : ''}
+      ${l.lightTier && l.lightTier !== 'na' ? `<div class="text-xs text-muted">☀️ ${LIGHT_TIER_LABELS[l.lightTier]}</div>` : ''}
     </div>`;
 }
+
+// ── Status → removed date visibility ───────────────────────
+function updateStatusFields() {
+  const status = document.getElementById('lcStatus').value;
+  document.getElementById('fieldRemovedDate').classList.toggle('hidden', status === 'alive');
+}
+document.getElementById('lcStatus').addEventListener('change', updateStatusFields);
 
 // ── Open add modal ────────────────────────────────────────
 function openAdd() {
@@ -97,9 +114,15 @@ function openAdd() {
   document.getElementById('lcSpecies').value  = '';
   document.getElementById('lcDateAdded').value= todayDate();
   document.getElementById('lcHealth').value   = 'good';
+  document.getElementById('lcSource').value   = '';
+  document.getElementById('lcCost').value     = '';
   document.getElementById('lcLocation').value = '';
+  document.getElementById('lcLightTier').value= 'na';
+  document.getElementById('lcStatus').value   = 'alive';
+  document.getElementById('lcRemovedDate').value = '';
   document.getElementById('lcNotes').value    = '';
   document.getElementById('deleteBtn').classList.add('hidden');
+  updateStatusFields();
   showModal('livestockModal');
 }
 
@@ -113,9 +136,15 @@ window.openEdit = function(id) {
   document.getElementById('lcSpecies').value  = l.species || '';
   document.getElementById('lcDateAdded').value= l.dateAdded || todayDate();
   document.getElementById('lcHealth').value   = l.health || 'good';
+  document.getElementById('lcSource').value   = l.source || '';
+  document.getElementById('lcCost').value     = l.cost ?? '';
   document.getElementById('lcLocation').value = l.location || '';
+  document.getElementById('lcLightTier').value= l.lightTier || 'na';
+  document.getElementById('lcStatus').value   = l.status || 'alive';
+  document.getElementById('lcRemovedDate').value = l.removedDate || '';
   document.getElementById('lcNotes').value    = l.notes || '';
   document.getElementById('deleteBtn').classList.remove('hidden');
+  updateStatusFields();
   showModal('livestockModal');
 };
 
@@ -123,13 +152,19 @@ window.openEdit = function(id) {
 document.getElementById('saveBtn').addEventListener('click', async () => {
   const name = document.getElementById('lcName').value.trim();
   if (!name) return showToast('Please enter a name.', 'error');
+  const status = document.getElementById('lcStatus').value;
   const data = {
     name,
     type:      document.getElementById('lcType').value,
     species:   document.getElementById('lcSpecies').value.trim(),
     dateAdded: document.getElementById('lcDateAdded').value,
     health:    document.getElementById('lcHealth').value,
+    source:    document.getElementById('lcSource').value.trim(),
+    cost:      parseFloat(document.getElementById('lcCost').value) || null,
     location:  document.getElementById('lcLocation').value.trim(),
+    lightTier: document.getElementById('lcLightTier').value,
+    status,
+    removedDate: status !== 'alive' ? (document.getElementById('lcRemovedDate').value || null) : null,
     notes:     document.getElementById('lcNotes').value.trim(),
   };
   if (editingId) {
