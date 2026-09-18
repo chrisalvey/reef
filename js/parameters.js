@@ -91,11 +91,10 @@ function renderChart(readings, p) {
   const ctx = document.getElementById('paramChart').getContext('2d');
   if (chart) chart.destroy();
 
-  const labels = readings.map(r => {
-    const d = r.timestamp?.toDate ? r.timestamp.toDate() : new Date(r.timestamp);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  });
-  const values = readings.map(r => r.value);
+  const points = readings.map(r => ({
+    x: r.timestamp?.toDate ? r.timestamp.toDate() : new Date(r.timestamp),
+    y: r.value,
+  }));
 
   const colors = readings.map(r => {
     const s = getParamStatus(r.value, p.min, p.max);
@@ -105,10 +104,9 @@ function renderChart(readings, p) {
   chart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels,
       datasets: [{
         label: `${p.name} (${p.unit})`,
-        data: values,
+        data: points,
         borderColor: 'var(--teal)',
         backgroundColor: 'rgba(0,180,216,0.08)',
         borderWidth: 2,
@@ -133,6 +131,11 @@ function renderChart(readings, p) {
       },
       scales: {
         x: {
+          type: 'time',
+          time: {
+            tooltipFormat: 'MMM d, yyyy h:mm a',
+            displayFormats: { hour: 'MMM d h:mm a', day: 'MMM d', week: 'MMM d', month: 'MMM yyyy' }
+          },
           grid: { color: 'rgba(26,58,92,.5)' },
           ticks: { color: '#64748b', maxTicksLimit: 10 }
         },
