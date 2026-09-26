@@ -1,7 +1,7 @@
 import { db } from '../firebase-config.js';
 import {
   collection, query, orderBy, limit, getDocs, where,
-  doc, getDoc, setDoc
+  doc, getDoc, setDoc, Timestamp
 } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
 import {
   setActiveNav, enabledParams, loadParamSettings, getParamStatus, statusBadgeClass, statusLabel,
@@ -19,9 +19,10 @@ const alertsList    = document.getElementById('alertsList');
 
 document.getElementById('refreshBtn').addEventListener('click', loadAll);
 document.getElementById('exportJsonBtn').addEventListener('click', exportJson);
+document.getElementById('nutrientRange').addEventListener('change', loadNutrientChart);
 
 async function loadAll() {
-  await Promise.all([loadTankProfile(), loadParameters(), loadTasks(), loadJournal(), loadStats()]);
+  await Promise.all([loadTankProfile(), loadParameters(), loadNutrientChart(), loadTasks(), loadJournal(), loadStats()]);
 }
 
 // ── Tank Profile ──────────────────────────────────────────
@@ -191,6 +192,145 @@ async function loadParameters() {
   } else {
     alertsSection.classList.add('hidden');
   }
+}
+
+// ── Nutrient chart (nitrate + phosphate + water changes) ──
+let nutrientChart = null;
+
+const toDate = ts => ts?.toDate ? ts.toDate() : new Date(ts);
+
+// Draws a faint vertical guide through each water-change marker
+const waterChangeLines = {
+  id: 'waterChangeLines',
+  beforeDatasetsDraw(chart) {
+    const idx = chart.data.datasets.findIndex(d => d.isWaterChange);
+    if (idx < 0 || !chart.isDatasetVisible(idx)) return;
+    const { ctx, chartArea } = chart;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(226,232,240,.25)';
+    ctx.setLineDash([4, 4]);
+    chart.getDatasetMeta(idx).data.forEach(pt => {
+      ctx.beginPath();
+      ctx.moveTo(pt.x, chartArea.top);
+      ctx.lineTo(pt.x, chartArea.bottom);
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+};
+
+async function loadNutrientChart() {
+  const days   = parseInt(document.getElementById('nutrientRange').value) || 0;
+  const cutoff = days ? Timestamp.fromDate(new Date(Date.now() - days * 86400000)) : null;
+  const since  = coll => cutoff
+    ? query(collection(db, coll), where('timestamp', '>=', cutoff), orderBy('timestamp'))
+    : query(collection(db, coll), orderBy('timestamp'));
+
+  const [paramSnap, journalSnap] = await Promise.all([
+    getDocs(since('reef_parameters')),
+    getDocs(since('reef_journal')),
+  ]);
+
+  const settings = loadParamSettings();
+  const nitrate   = settings.find(p => p.key === 'nitrate')   ?? { name: 'Nitrate',   unit: 'ppm', decimals: 2 };
+  const phosphate = settings.find(p => p.key === 'phosphate') ?? { name: 'Phosphate', unit: 'ppm', decimals: 3 };
+
+  const readings = paramSnap.docs.map(d => d.data());
+  const series = key => readings
+    .filter(r => r.paramKey === key)
+    .map(r => ({ x: toDate(r.timestamp), y: Number(r.value) }));
+
+  const waterChanges = journalSnap.docs
+    .map(d => d.data())
+    .filter(e => e.type === 'water_change')
+    .map(e => ({ x: toDate(e.timestamp), y: 0.04, title: e.title, gallons: e.volumeGallons }));
+
+  const lineStyle = color => ({
+    borderColor: color,
+    backgroundColor: color,
+    borderWidth: 2,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+    tension: 0,
+  });
+
+  if (nutrientChart) nutrientChart.destroy();
+  nutrientChart = new Chart(document.getElementById('nutrientChart'), {
+    type: 'line',
+    data: {
+      datasets: [
+        { label: `${nitrate.name} (${nitrate.unit})`,     data: series('nitrate'),   yAxisID: 'yNitrate',   ...lineStyle('#ff6b6b') },
+        { label: `${phosphate.name} (${phosphate.unit})`, data: series('phosphate'), yAxisID: 'yPhosphate', ...lineStyle('#06d6a0') },
+        {
+          label: 'Water change',
+          isWaterChange: true,
+          type: 'scatter',
+          data: waterChanges,
+          yAxisID: 'yMarker',
+          pointStyle: 'rectRot',
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          backgroundColor: '#e2e8f0',
+          borderColor: '#0d2137',
+          borderWidth: 1,
+          clip: false,
+        },
+      ]
+    },
+    plugins: [waterChangeLines],
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'nearest', axis: 'x', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#94a3b8', usePointStyle: true, boxHeight: 8 } },
+        tooltip: {
+          backgroundColor: '#0a1628',
+          borderColor: '#1a3a5c',
+          borderWidth: 1,
+          titleColor: '#e2e8f0',
+          bodyColor: '#94a3b8',
+          callbacks: {
+            label: item => {
+              const raw = item.raw;
+              if (item.dataset.isWaterChange) {
+                return `💧 ${raw.title || 'Water change'}${raw.gallons ? ` (${raw.gallons} gal)` : ''}`;
+              }
+              const p = item.dataset.yAxisID === 'yNitrate' ? nitrate : phosphate;
+              return `${p.name}: ${raw.y.toFixed(p.decimals)} ${p.unit}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: {
+            tooltipFormat: 'MMM d, yyyy h:mm a',
+            displayFormats: { hour: 'MMM d h:mm a', day: 'MMM d', week: 'MMM d', month: 'MMM yyyy' }
+          },
+          grid: { color: 'rgba(26,58,92,.5)' },
+          ticks: { color: '#64748b', maxTicksLimit: 10 }
+        },
+        yNitrate: {
+          position: 'left',
+          beginAtZero: true,
+          title: { display: true, text: `${nitrate.name} (${nitrate.unit})`, color: '#ff6b6b' },
+          grid: { color: 'rgba(26,58,92,.5)' },
+          ticks: { color: '#ff6b6b' },
+        },
+        yPhosphate: {
+          position: 'right',
+          beginAtZero: true,
+          title: { display: true, text: `${phosphate.name} (${phosphate.unit})`, color: '#06d6a0' },
+          grid: { drawOnChartArea: false },
+          ticks: { color: '#06d6a0' },
+        },
+        // Hidden 0–1 axis so water-change markers sit along the bottom edge
+        yMarker: { display: false, min: 0, max: 1 },
+      }
+    }
+  });
 }
 
 // ── Tasks ─────────────────────────────────────────────────

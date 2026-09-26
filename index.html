@@ -6,6 +6,8 @@
   <title>Dashboard | Reef Tracker</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪸</text></svg>">
   <link rel="stylesheet" href="styles.css?v=5">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
@@ -69,6 +71,25 @@
       <div class="loading"><div class="spinner"></div> Loading…</div>
     </div>
   </section>
+
+  <!-- Nutrient trend chart -->
+  <div class="card mb-lg">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Nutrients &amp; Water Changes</div>
+        <div class="card-subtitle">Nitrate and phosphate over time; ◆ marks a water change from the journal</div>
+      </div>
+      <select class="form-select" id="nutrientRange" style="width:auto;">
+        <option value="30">30 days</option>
+        <option value="90" selected>90 days</option>
+        <option value="180">180 days</option>
+        <option value="0">All time</option>
+      </select>
+    </div>
+    <div class="chart-container" style="height:300px;">
+      <canvas id="nutrientChart"></canvas>
+    </div>
+  </div>
 
   <div class="grid-2" style="gap:1.5rem">
     <!-- Upcoming Tasks -->
